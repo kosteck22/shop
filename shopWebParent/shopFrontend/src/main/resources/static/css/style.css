@@ -1,0 +1,54 @@
+*.icon-white {color: white}
+*.icon-silver {color: silver}
+*.icon-green {color: green}
+*.icon-gray {color: gray}
+*.icon-dark {color: #212529}
+*.icon-size-hover:hover
+{
+   transform:scale(1.3,1.3);
+   -webkit-transform:scale(1.3,1.3);
+   -moz-transform:scale(1.3,1.3);
+}
+
+button:hover {
+  opacity:1;
+}
+
+.close:hover,
+.close:focus {
+  color: #f44336;
+  cursor: pointer;
+}
+
+.delete-icon:hover {
+    color: #f44336;
+}
+
+.background-color-silver {
+    background-color: silver;
+}
+.modal-backdrop {
+    /* bug fix - no overlay */
+    display: none;
+}
+
+
+@media screen and (max-width: 768px) {
+    /* small screen */
+    div.full-details { display: none; }
+    div.less-details {display: block; }
+
+}
+
+@media screen and (min-width: 768px) and (max-width: 1024px) {
+    /* medium screen */
+     div.full-details { display: block; }
+     div.less-details { display: none; }
+     .hideable-column { display: none; }
+}
+
+@media screen and (min-width: 1024px) {
+    /* large screen */
+     div.less-details { display: none; }
+     .hideable-column { display: table-cell; }
+}

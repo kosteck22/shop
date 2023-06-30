@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html xmlns:th="https://thymeleaf.org">
+<head th:replace="fragments :: page_head('Customers - Admin Panel', 'none')"></head>
+<body>
+<div class="container-fluid">
+
+    <div th:replace="navigation :: menu"></div>
+    <div>
+        <h2>Manage Users</h2>
+        <div class="mb-3">
+            <div class="input-group">
+                <div class="row g-3 align-items-center">
+                    <div class="col-auto">
+                        <a th:href="@{customers/export/csv}" type="button" class="btn btn-secondary">Export to CSV</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+    <div th:if="${message != null}" class="alert alert-success text-center">
+        [[${message}]]
+    </div>
+    <div>
+        <form th:action="@{/customers/page/1}" class="form-inline m-3">
+            <input type="hidden" name="sortField" th:value="${sortField}">
+            <input type="hidden" name="sortDir" th:value="${sortDir}">
+            <div class="input-group">
+                <div class="row g-3 align-items-center">
+                    <div class="col-auto">
+                        <input type="search" name="keyword" th:value="${keyword}"
+                               class="form-control" required id="form1" placeholder="Search" aria-label="Search">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div class="col-auto">
+                         <button type="button" th:class="${keyword == null ? 'btn btn-outline-secondary disabled' : 'btn btn-outline-secondary'}" onclick="clearFilter()">Clear</button>
+                    </div>
+            </div>
+            </div>
+        </form>
+    </div>
+    <div class="full-details">
+        <table class="table table-bordered table-striped table-hover table-responsive-xl">
+            <thead class="table-dark">
+                <tr>
+                    <th th:replace="fragments :: column_link('id', 'ID', 'none', '/customers/page/')" />
+                    <th class="hideable-column">
+                        <th th:replace="fragments :: column_link('email', 'Email', 'tag', '/customers/page/')" />
+                    </th>
+                    <th th:replace="fragments :: column_link('firstName', 'First Name', 'none', '/customers/page/')" />
+                    <th th:replace="fragments :: column_link('lastName', 'Last Name', 'none', '/customers/page/')" />
+                    <th class="hideable-column">
+                        <th th:replace="fragments :: column_link('city', 'City', 'tag', '/customers/page/')" />
+                    </th>
+                    <th class="hideable-column">
+                        <th th:replace="fragments :: column_link('state', 'State', 'tag', '/customers/page/')" />
+                    </th>
+                    <th th:replace="fragments :: column_link('country', 'Country', 'none', '/customers/page/')" />
+                    <th th:replace="fragments :: column_link('enabled', 'Enabled', 'none', '/customers/page/')" />
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="customer : ${listCustomers}">
+                    <td>[[${customer.id}]]</td>
+                    <td class="hideable-column">[[${customer.email}]]</td>
+                    <td>[[${customer.firstName}]]</td>
+                    <td>[[${customer.lastName}]]</td>
+                    <td class="hideable-column">[[${customer.city}]]</td>
+                    <td class="hideable-column">[[${customer.state}]]</td>
+                    <td>[[${customer.country.name}]]</td>
+                    <td class="text-center">
+                        <div th:replace="fragments :: object_enabled(${customer.enabled},
+                        'customer', '/customers/' + ${customer.id})"></div>
+                    </td>
+                    <td>
+                        <a th:href="@{'/customers/edit/' + ${customer.id}}">
+                            <i class="fa-solid fa-user-pen icon-dark icon-size-hover"
+                               title="Edit this user"></i>
+                        </a>
+                        &nbsp;
+                        <a th:href="@{'/customers/delete/' + ${customer.id}}"
+                           th:customerId="${customer.id}"
+                           class="link-delete">
+                            <i class="fa-solid fa-user-slash icon-gray
+                                      icon-size-hover delete-icon"
+                               title="Delete this customer"></i>
+                        </a>
+
+                        <div id="confirmModal" class="modal">
+                            <span onclick="document.getElementById('confirmModal').style.display='none'" class="close" title="Close Modal">&times;</span>
+                            <div class="modal-content">
+                                <div class="container">
+                                    <h1>Delete Account</h1>
+                                    <p><span id="confirmText"></span></p>
+
+                                    <div class="clearfix">
+                                        <button type="button" class="cancelbtn" onclick="document.getElementById('confirmModal').style.display='none'">Cancel</button>
+                                        <a href="" id="yesButton"><button class="button deletebtn">Delete</button></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="less-details">
+        <div th:each="customer : ${listCustomers}" class="row m-1">
+            <div class="col-8">
+                <div>[[${customer.fullName}]]</div>
+                <div class="mt-2">
+                    <div th:replace="fragments :: object_enabled(${customer.enabled}, 'customer', '/customers/' + ${customer.id})"></div>
+                    &nbsp;
+                    <a th:href="@{'/customers/edit/' + ${customer.id}}">
+                        <i class="fa-solid fa-user-pen icon-dark icon-size-hover"
+                           title="Edit this user"></i>
+                    </a>
+                    &nbsp;
+                    &nbsp;
+                    <a th:href="@{'/customers/delete/' + ${customer.id}}"
+                       th:customerId="${customer.id}"
+                       class="link-delete">
+                        <i class="fa-solid fa-user-slash icon-gray
+                                      icon-size-hover delete-icon"
+                           title="Delete this customer"></i>
+                    </a>
+                </div>
+            </div>
+            <div>
+                &nbsp;
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center m-1" th:if="${totalItems >0}">
+        <span>Showing customers # [[${startCount}]] to [[${endCount}]] of [[${totalItems}]]</span>
+    </div>
+
+    <div class="text-center m-1" th:unless="${totalItems >0}">
+        <span>No customers found</span>
+    </div>
+
+    <div th:if="${totalPages > 1}">
+        <nav>
+            <ul class="pagination justify-content-center flex-wrap">
+                <li th:class="${currentPage > 1 ? 'page-item' : 'page-item disabled'}">
+                    <a th:replace="fragments :: page_link(1, 'First', '/customers/page/')"></a>
+                </li>
+                <li th:class="${currentPage > 1 ? 'page-item' : 'page-item disabled'}">
+                    <a th:replace="fragments :: page_link(${currentPage - 1}, 'Previous', '/customers/page/')"></a>
+                </li>
+
+                <li th:class="${currentPage != i ? 'page-item' : 'page-item active'}"
+                    th:each="i : ${#numbers.sequence(1, totalPages)}">
+                    <a th:replace="fragments :: page_link(${i}, ${i}, '/customers/page/')"></a>
+                </li>
+
+                <li th:class="${currentPage < totalPages ? 'page-item' : 'page-item disabled'}">
+                    <a th:replace="fragments :: page_link(${currentPage + 1}, 'Next', '/customers/page/')"></a>
+                </li>
+                <li th:class="${currentPage < totalPages ? 'page-item' : 'page-item disabled'}">
+                    <a th:replace="fragments :: page_link(${totalPages}, 'Last', '/customers/page/')"></a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <div th:replace="fragments :: footer"></div>
+</div>
+<script type="text/javascript">
+
+    // Get the modal
+    var modal = document.getElementById('confirmModal');
+
+    $(document).ready(function() {
+        $(".link-delete").on("click", function(e) {
+            e.preventDefault();
+            link = $(this);
+            customerId = link.attr("customerId");
+            $("#yesButton").attr("href", link.attr("href"));
+            $("#confirmText").text("Are you sure you want to delete customer with ID " + customerId + "?");
+            modal.style.display = "block";
+        });
+    });
+
+    function clearFilter() {
+        window.location = "[[@{/customers}]]"
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+</script>
+</body>
+</html>

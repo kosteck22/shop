@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html xmlns:th="https://thymeleaf.org">
+<body>
+  <div th:fragment="content" class="modal fade" id="confirmModal" aria-labelledby="modalTitle"
+       tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h4 class="modal-title" id="returnOrderModalTitle">Return Order</h4>
+          <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close"> <span aria-hidden="true">&times;</span></button>
+        </div>
+        <form onsubmit="return submitReturnOrderForm();">
+        <div class="modal-body">
+          <div id="divReason">
+            <div>Reason:</div>
+            <div><input type="radio" name="returnReason" value="I bought the wrong items" required>I bought the wrong items</div>
+            <div><input type="radio" name="returnReason" value="I received the wrong items">I received the wrong items</div>
+            <div><input type="radio" name="returnReason" value="The product was damaged/defective">The product was damaged/defective</div>
+            <div><input type="radio" name="returnReason" value="The product arrived too late">The product arrived too late</div>
+            <div><input type="radio" name="returnReason" value="Nothing from above">Nothing from above</div>
+            <div class="m-1">
+              <textarea class="form-control" id="returnNote" rows="4" maxlength="120" placeholder="Additional information"></textarea>
+            </div>
+          </div>
+          <div id="divMessage" class="text-center">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success" id="firstButton">Send Request</button>
+          <button type="button" class="btn btn-danger" data-bs-dismiss="modal" id="secondButton">Cancel</button>
+        </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

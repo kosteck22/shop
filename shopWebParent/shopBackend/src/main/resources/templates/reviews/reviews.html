@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html xmlns:th="https://thymeleaf.org">
+<head th:replace="fragments :: page_head('Reviews - Admin Panel', 'none')"></head>
+<body>
+<div class="container-fluid">
+
+    <div th:replace="navigation :: menu"></div>
+    <div>
+        <h2>Manage Reviews</h2>
+    </div>
+
+    <div th:if="${message != null}" class="alert alert-success text-center">
+        [[${message}]]
+    </div>
+    <div>
+        <form th:action="@{/reviews/page/1}" class="form-inline m-3">
+            <input type="hidden" name="sortField" th:value="${sortField}">
+            <input type="hidden" name="sortDir" th:value="${sortDir}">
+            <div class="input-group">
+                <div class="row g-3 align-items-center">
+                    <div class="col-auto">
+                        <input type="search" name="keyword" th:value="${keyword}"
+                               class="form-control" required id="form1" placeholder="Search" aria-label="Search">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div class="col-auto">
+                         <button type="button" th:class="${keyword == null ? 'btn btn-outline-secondary disabled' : 'btn btn-outline-secondary'}" onclick="clearFilter()">Clear</button>
+                    </div>
+            </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="full-details">
+        <table class="table table-bordered table-striped table-hover table-responsive-xl">
+            <thead class="table-dark">
+                <tr>
+                    <th th:replace="fragments :: column_link('id', 'ID', 'none', '/reviews/page/')" />
+                    <th th:replace="fragments :: column_link('product', 'Product', 'none', '/reviews/page/')" />
+                    <th th:replace="fragments :: column_link('customer', 'Customer', 'none', '/reviews/page/')" />
+                    <th th:replace="fragments :: column_link('rating', 'Rating', 'none', '/reviews/page/')" />
+                    <th th:replace="fragments :: column_link('reviewTime', 'Review Time', 'none', '/reviews/page/')" />
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="review : ${listReviews}">
+                    <td>[[${review.id}]]</td>
+                    <td>
+                        <a th:href="@{'/products/detail/' + ${review.product.id}}" class="link-detail-product">
+                            [[${review.product.shortName}]]
+                        </a>
+                    </td>
+                    <td>
+                        <a th:href="@{'/customers/detail/' + ${review.customer.id}}" class="link-detail-customer">
+                            [[${review.customer.fullName}]]
+                        </a>
+                    </td>
+                    <td>[[${review.rating}]] <i class="far fa-star"></i></td>
+                    <td>[[${review.reviewTime}]]</td>
+                    <td>
+                        <a class="fas fa-file-alt fa-2x icon-green link-detail-review"
+                        th:href="@{'/reviews/detail/' + ${review.id}}"
+                        title="View details of this review">
+                        </a>
+                        &nbsp;
+                        <a th:href="@{'/reviews/edit/' + ${review.id}}">
+                            <i class="fa-solid fa-user-pen icon-dark icon-size-hover"
+                               title="Edit this review"></i>
+                        </a>
+                        &nbsp;
+                        <a th:href="@{'/reviews/delete/' + ${review.id}}"
+                           th:reviewId="${review.id}"
+                           class="link-delete">
+                            <i class="fa-solid fa-user-slash icon-gray
+                                      icon-size-hover delete-icon"
+                               title="Delete this review"></i>
+                        </a>
+
+                        <div id="confirmModal" class="modal">
+                            <span onclick="document.getElementById('confirmModal').style.display='none'" class="close" title="Close Modal">&times;</span>
+                            <div class="modal-content">
+                                <div class="container">
+                                    <h1>Delete Review</h1>
+                                    <p><span id="confirmText"></span></p>
+
+                                    <div class="clearfix">
+                                        <button type="button" class="cancelbtn" onclick="document.getElementById('confirmModal').style.display='none'">Cancel</button>
+                                        <a href="" id="yesButton"><button class="button deletebtn">Delete</button></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="less-details">
+        <div th:each="review : ${listReviews}" class="row m-1">
+            <div class="col-10">
+                <div class="mb-1">
+                    <span>[[${review.customer.fullName}]]</span>
+                </div>
+                <div>
+                    &nbsp;
+                    <span>[[${review.rating}]] <i class="far fa-star"></i></span>
+                    &nbsp;
+                    <a class="fas fa-file-alt fa-2x icon-green link-detail-review"
+                       th:href="@{'/reviews/detail/' + ${review.id}}"
+                       title="View details of this review">
+                    </a>
+                    &nbsp;
+                    <a th:href="@{'/reviews/edit/' + ${review.id}}">
+                        <i class="fa-solid fa-user-pen icon-dark icon-size-hover"
+                           title="Edit this review"></i>
+                    </a>
+                    &nbsp;
+                    <a th:href="@{'/reviews/delete/' + ${review.id}}"
+                       th:customerId="${review.id}"
+                       class="link-delete">
+                        <i class="fa-solid fa-user-slash icon-gray
+                                      icon-size-hover delete-icon"
+                           title="Delete this review"></i>
+                    </a>
+                </div>
+            </div>
+            <div>
+                &nbsp;
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center m-1" th:if="${totalItems >0}">
+        <span>Showing reviews # [[${startCount}]] to [[${endCount}]] of [[${totalItems}]]</span>
+    </div>
+
+    <div class="text-center m-1" th:unless="${totalItems >0}">
+        <span>No reviews found</span>
+    </div>
+
+    <div th:if="${totalPages > 1}">
+        <nav>
+            <ul class="pagination justify-content-center flex-wrap">
+                <li th:class="${currentPage > 1 ? 'page-item' : 'page-item disabled'}">
+                    <a th:replace="fragments :: page_link(1, 'First', '/reviews/page/')"></a>
+                </li>
+                <li th:class="${currentPage > 1 ? 'page-item' : 'page-item disabled'}">
+                    <a th:replace="fragments :: page_link(${currentPage - 1}, 'Previous', '/reviews/page/')"></a>
+                </li>
+
+                <li th:class="${currentPage != i ? 'page-item' : 'page-item active'}"
+                    th:each="i : ${#numbers.sequence(1, totalPages)}">
+                    <a th:replace="fragments :: page_link(${i}, ${i}, '/reviews/page/')"></a>
+                </li>
+
+                <li th:class="${currentPage < totalPages ? 'page-item' : 'page-item disabled'}">
+                    <a th:replace="fragments :: page_link(${currentPage + 1}, 'Next', '/reviews/page/')"></a>
+                </li>
+                <li th:class="${currentPage < totalPages ? 'page-item' : 'page-item disabled'}">
+                    <a th:replace="fragments :: page_link(${totalPages}, 'Last', '/reviews/page/')"></a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <div th:replace="fragments :: footer"></div>
+
+    <div class="modal fade" id="xlargeModal">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="largeModal">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+
+    // Get the modal
+    var modal = document.getElementById('confirmModal');
+
+    $(document).ready(function() {
+        $(".link-delete").on("click", function(e) {
+            e.preventDefault();
+            link = $(this);
+            reviewId = link.attr("reviewId");
+            $("#yesButton").attr("href", link.attr("href"));
+            $("#confirmText").text("Are you sure you want to delete review with ID " + reviewId + "?");
+            modal.style.display = "block";
+        });
+        handleProductDetailLink();
+        handleCustomerDetailLink();
+        handleReviewDetailLink();
+    });
+
+    function clearFilter() {
+        window.location = "[[@{/reviews}]]"
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+
+    function handleDetailLinkClick(cssClass, modalId) {
+        $(cssClass).on("click", function(e) {
+            e.preventDefault();
+            linkDetailURL = $(this).attr("href");
+            $(modalId).modal("show").find(".modal-content").load(linkDetailURL);
+        });
+    }
+
+    function handleProductDetailLink() {
+        handleDetailLinkClick(".link-detail-product", "#xlargeModal");
+    }
+
+    function handleCustomerDetailLink() {
+        handleDetailLinkClick(".link-detail-customer", "#largeModal");
+    }
+
+    function handleReviewDetailLink() {
+        handleDetailLinkClick(".link-detail-review", "#largeModal");
+    }
+</script>
+</body>
+</html>

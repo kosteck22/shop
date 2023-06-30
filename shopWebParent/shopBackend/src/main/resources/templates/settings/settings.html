@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns:th="https://thymeleaf.org">
+<head>
+  <head th:replace="fragments :: page_head('Settings - Shop Admin', 'tag')"></head>
+  <link rel="stylesheet" th:href="@{/richtext/richtext.min.css}">
+  <script th:src="@{/richtext/jquery.richtext.min.js}"></script>
+</head>
+<body>
+<div class="container-fluid">
+  <div th:replace="navigation :: menu"></div>
+  <div>
+    <h2>Site Settings</h2>
+  </div>
+
+  <div th:if="${message != null}" class="alert alert-success text-center">
+    [[${message}]]
+  </div>
+
+  <div>
+      <div>
+        <ul class="nav nav-tabs" id="settingTab" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button href="#general" class="nav-link active" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab">General</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button href="#countries" class="nav-link" data-bs-toggle="tab" data-bs-target="#countries" type="button" role="tab">Countries</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button href="#states" class="nav-link" data-bs-toggle="tab" data-bs-target="#states" type="button" role="tab">States</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button href="#mailServer" class="nav-link" data-bs-toggle="tab" data-bs-target="#mailServer" type="button" role="tab">Mail Server</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button href="#mailTemplates" class="nav-link" data-bs-toggle="tab" data-bs-target="#mailTemplates" type="button" role="tab">Mail Templates</button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button href="#payments" class="nav-link" data-bs-toggle="tab" data-bs-target="#payments" type="button" role="tab">Payment</button>
+          </li>
+        </ul>
+
+        <!-- Tab panes -->
+        <div class="tab-content">
+          <div class="tab-pane active p-3" id="general" role="tabpanel">
+            <div th:replace="settings/general :: content"></div>
+          </div>
+          <div class="tab-pane p-3" id="countries" role="tabpanel">
+            <div th:replace="settings/countries :: content"></div>
+          </div>
+          <div class="tab-pane p-3" id="states" role="tabpanel">
+            <div th:replace="settings/states :: content"></div>
+          </div>
+          <div class="tab-pane p-3" id="mailServer" role="tabpanel">
+            <div th:replace="settings/mail_server :: content"></div>
+          </div>
+          <div class="tab-pane p-3" id="mailTemplates" role="tabpanel">
+            <div th:replace="settings/mail_templates/mail_templates :: content"></div>
+          </div>
+          <div class="tab-pane p-3" id="payments" role="tabpanel">
+            <div th:replace="settings/payment :: content"></div>
+          </div>
+        </div>
+      </div>
+  </div>
+
+  <div th:replace="fragments :: footer"></div>
+</div>
+<script type="text/javascript">
+  MAX_FILE_SIZE = 102400; //100KB
+  contextPath = "[[@{/}]]";
+  var csrfHeaderName = "[[${_csrf.headerName}]]";
+  var csrfValue = "[[${_csrf.token}]]";
+
+  $(document).ready(function() {
+    $("#customerVerificationContent").richText();
+    $("#orderConfirmationContent").richText();
+  });
+</script>
+<script th:src="@{/js/common_form.js}"></script>
+<script th:src="@{/js/countries_setting.js}"></script>
+<script th:src="@{/js/states_setting.js}"></script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html xmlns:th="https://thymeleaf.org">
+<head th:replace="fragments :: page_head('Brands - Admin Panel', 'none')"></head>
+<body>
+<div class="container-fluid">
+
+    <div th:replace="navigation :: menu"></div>
+    <div>
+        <h2>Manage Brands</h2>
+        <div class="mb-3">
+            <div class="input-group">
+                <div class="row g-3 align-items-center">
+                    <div class="col-auto">
+                        <a th:href="@{/brands/new}"><button type="button" class="btn btn-primary">Create New Brand</button></a>
+                    </div>
+                    <div class="col-auto">
+                        <a th:href="@{brands/export/csv}" type="button" class="btn btn-secondary">Export to CSV</a>
+                    </div>
+                    <div class="col-auto">
+                        <a th:href="@{brands/export/excel}" type="button" class="btn btn-secondary">Export to Excel</a>
+                    </div>
+                    <div class="col-auto">
+                        <a th:href="@{brands/export/pdf}" type="button" class="btn btn-secondary">Export to PDF</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:if="${message != null}" class="alert alert-success text-center">
+        [[${message}]]
+    </div>
+    <div>
+        <form th:action="@{/brands/page/1}" class="form-inline m-3">
+            <input type="hidden" name="sortField" th:value="${sortField}">
+            <input type="hidden" name="sortDir" th:value="${sortDir}">
+            <div class="input-group">
+                <div class="row g-3 align-items-center">
+                    <div class="col-auto">
+                        <input type="search" name="keyword" th:value="${keyword}"
+                               class="form-control" required id="form1" placeholder="Search" aria-label="Search">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div class="col-auto">
+                        <button type="button" th:class="${keyword == null ? 'btn btn-outline-secondary disabled' : 'btn btn-outline-secondary'}" onclick="clearFilter()">Clear</button>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="full-details">
+        <table class="table table-bordered table-striped table-hover table-responsive-xl">
+            <thead class="table-dark">
+            <tr>
+                <th class="hideable-column">
+                    <th th:replace="fragments :: column_link('id', 'Brand ID', 'tag', '/brands/page/')" />
+                </th>
+                <th>Logo</th>
+                <th th:replace="fragments :: column_link('name', 'Brand Name', 'none', '/brands/page/')" />
+                <th>Categories</th>
+                <th></th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="brand : ${listBrands}">
+                <td class="hideable-column">[[${brand.id}]]</td>
+                <td class="text-center">
+                    <img th:src="@{${brand.logoPath}}" style="max-width:80px;width:100%;max-height:100px;height:100%">
+                </td>
+                <td>[[${brand.name}]]</td>
+                <td>
+                    <th:block th:each="cat : ${brand.categories}">
+                        <span class="badge bg-secondary" th:text="${cat.name}"></span>
+                    </th:block>
+                </td>
+                <td>
+                    &nbsp;<div th:replace="fragments :: object_actions('/brands',${brand.id},'brand')"></div>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="less-details">
+        <div th:each="brand : ${listBrands}" class="row m-1">
+            <div class="col-4">
+                <img th:if="${brand.logo != null}" th:src="@{${brand.logoPath}}" style="max-width:80px;width:100%;max-height:100px;height:100%" />
+            </div>
+            <div class="col-8">
+                <div>[[${brand.name}]]</div>
+                <div class="mt-2">
+                    <div th:replace="fragments :: object_actions('/brands',${brand.id},'brand')"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center m-1" th:if="${totalItems >0}">
+        <span>Showing brands # [[${startCount}]] to [[${endCount}]] of [[${totalItems}]]</span>
+    </div>
+
+    <div class="text-center m-1" th:unless="${totalItems >0}">
+        <span>No brands found</span>
+    </div>
+
+    <div th:if="${totalPages > 1}">
+        <nav>
+            <ul class="pagination justify-content-center flex-wrap">
+                <li th:class="${currentPage > 1 ? 'page-item' : 'page-item disabled'}">
+                    <a th:replace="fragments :: page_link(1, 'First', '/brands/page/')"></a>
+                </li>
+                <li th:class="${currentPage > 1 ? 'page-item' : 'page-item disabled'}">
+                    <a th:replace="fragments :: page_link(${currentPage - 1}, 'Previous', '/brands/page/')"></a>
+                </li>
+
+                <li th:class="${currentPage != i ? 'page-item' : 'page-item active'}"
+                    th:each="i : ${#numbers.sequence(1, totalPages)}">
+                    <a th:replace="fragments :: page_link(${i}, ${i}, '/brands/page/')"></a>
+                </li>
+
+                <li th:class="${currentPage < totalPages ? 'page-item' : 'page-item disabled'}">
+                    <a th:replace="fragments :: page_link(${currentPage + 1}, 'Next', '/brands/page/')"></a>
+                </li>
+                <li th:class="${currentPage < totalPages ? 'page-item' : 'page-item disabled'}">
+                    <a th:replace="fragments :: page_link(${totalPages}, 'Last', '/brands/page/')"></a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <div th:replace="fragments :: footer"></div>
+</div>
+<div id="confirmModal" class="modal">
+    <span onclick="document.getElementById('confirmModal').style.display='none'" class="close" title="Close Modal">&times;</span>
+    <div class="modal-content">
+        <div class="container">
+            <h1>Delete Brand</h1>
+            <p><span id="confirmText"></span></p>
+
+            <div class="clearfix">
+                <button type="button" class="cancelbtn" onclick="document.getElementById('confirmModal').style.display='none'">Cancel</button>
+                <a href="" id="yesButton"><button class="button deletebtn">Delete</button></a>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+
+    // Get the modal
+    var modal = document.getElementById('confirmModal');
+
+    $(document).ready(function() {
+        $(".link-delete").on("click", function(e) {
+            e.preventDefault();
+            link = $(this);
+            brandId = link.attr("brandId");
+            $("#yesButton").attr("href", link.attr("href"));
+            $("#confirmText").text("Are you sure you want to delete brand with ID " + brandId + "?");
+            modal.style.display = "block";
+        });
+    });
+
+    function clearFilter() {
+        window.location = "[[@{/brands}]]"
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+</script>
+</body>
+</html>

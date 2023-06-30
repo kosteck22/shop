@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html xmlns:th="https://thymeleaf.org">
+<head th:replace="fragments :: page_head('Users - Admin Panel', 'none')"></head>
+<body>
+<div class="container-fluid">
+
+    <div th:replace="navigation :: menu"></div>
+    <div>
+        <h2>Manage Users</h2>
+        <div class="mb-3">
+            <div class="input-group">
+                <div class="row g-3 align-items-center">
+                    <div class="col-auto">
+                         <a th:href="@{/users/new}"><button type="button" class="btn btn-primary">Create New User</button></a>
+                    </div>
+                    <div class="col-auto">
+                        <a th:href="@{users/export/csv}" type="button" class="btn btn-secondary">Export to CSV</a>
+                    </div>
+                    <div class="col-auto">
+                        <a th:href="@{users/export/excel}" type="button" class="btn btn-secondary">Export to Excel</a>
+                    </div>
+                    <div class="col-auto">
+                        <a th:href="@{users/export/pdf}" type="button" class="btn btn-secondary">Export to PDF</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+    <div th:if="${message != null}" class="alert alert-success text-center">
+        [[${message}]]
+    </div>
+    <div>
+        <form th:action="@{/users/page/1}" class="form-inline m-3">
+            <input type="hidden" name="sortField" th:value="${sortField}">
+            <input type="hidden" name="sortDir" th:value="${sortDir}">
+            <div class="input-group">
+                <div class="row g-3 align-items-center">
+                    <div class="col-auto">
+                        <input type="search" name="keyword" th:value="${keyword}"
+                               class="form-control" required id="form1" placeholder="Search" aria-label="Search">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div class="col-auto">
+                         <button type="button" th:class="${keyword == null ? 'btn btn-outline-secondary disabled' : 'btn btn-outline-secondary'}" onclick="clearFilter()">Clear</button>
+                    </div>
+            </div>
+            </div>
+        </form>
+    </div>
+    <div class="full-details">
+        <table class="table table-bordered table-striped table-hover table-responsive-xl">
+            <thead class="table-dark">
+                <tr>
+                    <th class="hideable-column">
+                        <th th:replace="fragments :: column_link('id', 'User ID', 'tag', '/users/page/')" />
+                    </th>
+                    <th>Photos</th>
+                    <th class="hideable-column">
+                        <th th:replace="fragments :: column_link('email', 'Email', 'tag', '/users/page/')" />
+                    </th>
+                    <th th:replace="fragments :: column_link('firstName', 'First Name', 'none', '/users/page/')" />
+                    <th th:replace="fragments :: column_link('lastName', 'Last Name', 'none', '/users/page/')" />
+                    <th>Roles</th>
+                    <th th:replace="fragments :: column_link('enabled', 'Enabled', 'none', '/users/page/')" />
+
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="user : ${listUsers}">
+                    <td class="hideable-column">[[${user.id}]]</td>
+                    <td class="text-center">
+                        <span th:if="${user.photos == null}" class="fa-solid fa-image-portrait fa-xl"></span>
+                        <img th:if="${user.photos != null}" th:src="@{${user.photosImagePath}}" style="max-width:80px;width:100%;max-height:100px;height:100%" />
+                    </td>
+                    <td class="hideable-column">[[${user.email}]]</td>
+                    <td>[[${user.firstName}]]</td>
+                    <td>[[${user.lastName}]]</td>
+                    <td>[[${user.roles}]]</td>
+                    <td class="text-center">
+                        <div th:replace="fragments :: object_enabled(${user.enabled}, 'user', '/users/' + ${user.id})"></div>
+                    </td>
+                    <td>
+                        <a th:href="@{'/users/edit/' + ${user.id}}">
+                            <i class="fa-solid fa-user-pen icon-dark icon-size-hover"
+                               title="Edit this user"></i>
+                        </a>
+                        &nbsp;
+                        <a th:href="@{'/users/delete/' + ${user.id}}"
+                           th:userId="${user.id}"
+                           class="link-delete">
+                            <i class="fa-solid fa-user-slash icon-gray
+                                      icon-size-hover delete-icon"
+                               title="Delete this user"></i>
+                        </a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="less-details">
+        <div th:each="user : ${listUsers}" class="row m-1">
+            <div class="col-4">
+                <span th:if="${user.photos == null}" class="fa-solid fa-image-portrait fa-xl"></span>
+                <img th:if="${user.photos != null}" th:src="@{${user.photosImagePath}}" style="max-width:80px;width:100%;max-height:100px;height:100%" />
+            </div>
+            <div class="col-8">
+                <div>[[${user.fullName}]]</div>
+                <div>[[${user.roles}]]</div>
+                <div class="mt-2">
+                    <div th:replace="fragments :: object_enabled(${user.enabled}, 'user', '/users/' + ${user.id})"></div>
+                    &nbsp;
+                    <a th:href="@{'/users/edit/' + ${user.id}}">
+                        <i class="fa-solid fa-user-pen icon-dark icon-size-hover"
+                           title="Edit this user"></i>
+                    </a>
+                    &nbsp;
+                    &nbsp;
+                    <a th:href="@{'/users/delete/' + ${user.id}}"
+                       th:userId="${user.id}"
+                       class="link-delete">
+                        <i class="fa-solid fa-user-slash icon-gray
+                                      icon-size-hover delete-icon"
+                           title="Delete this user"></i>
+                    </a>
+                </div>
+            </div>
+            <div>
+                &nbsp;
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center m-1" th:if="${totalItems >0}">
+        <span>Showing users # [[${startCount}]] to [[${endCount}]] of [[${totalItems}]]</span>
+    </div>
+
+    <div class="text-center m-1" th:unless="${totalItems >0}">
+        <span>No users found</span>
+    </div>
+
+    <div th:if="${totalPages > 1}">
+        <nav>
+            <ul class="pagination justify-content-center flex-wrap">
+                <li th:class="${currentPage > 1 ? 'page-item' : 'page-item disabled'}">
+                    <a th:replace="fragments :: page_link(1, 'First', '/users/page/')"></a>
+                </li>
+                <li th:class="${currentPage > 1 ? 'page-item' : 'page-item disabled'}">
+                    <a th:replace="fragments :: page_link(${currentPage - 1}, 'Previous', '/users/page/')"></a>
+                </li>
+
+                <li th:class="${currentPage != i ? 'page-item' : 'page-item active'}"
+                    th:each="i : ${#numbers.sequence(1, totalPages)}">
+                    <a th:replace="fragments :: page_link(${i}, ${i}, '/users/page/')"></a>
+                </li>
+
+                <li th:class="${currentPage < totalPages ? 'page-item' : 'page-item disabled'}">
+                    <a th:replace="fragments :: page_link(${currentPage + 1}, 'Next', '/users/page/')"></a>
+                </li>
+                <li th:class="${currentPage < totalPages ? 'page-item' : 'page-item disabled'}">
+                    <a th:replace="fragments :: page_link(${totalPages}, 'Last', '/users/page/')"></a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <div id="confirmModal" class="modal">
+        <span onclick="document.getElementById('confirmModal').style.display='none'" class="close" title="Close Modal">&times;</span>
+        <div class="modal-content">
+            <div class="container">
+                <h1>Delete Account</h1>
+                <p><span id="confirmText"></span></p>
+
+                <div class="clearfix">
+                    <button type="button" class="cancelbtn" onclick="document.getElementById('confirmModal').style.display='none'">Cancel</button>
+                    <a href="" id="yesButton"><button class="button btn-delete">Delete</button></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="fragments :: footer"></div>
+</div>
+<script type="text/javascript">
+
+    // Get the modal
+    var modal = document.getElementById('confirmModal');
+
+    $(document).ready(function() {
+        $(".link-delete").on("click", function(e) {
+            e.preventDefault();
+            link = $(this);
+            userId = link.attr("userId");
+            $("#yesButton").attr("href", link.attr("href"));
+            $("#confirmText").text("Are you sure you want to delete user with ID " + userId + "?");
+            modal.style.display = "block";
+        });
+    });
+
+    function clearFilter() {
+        window.location = "[[@{/users}]]"
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+</script>
+</body>
+</html>

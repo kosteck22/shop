@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html xmlns:th="https://thymeleaf.org">
+<head th:replace="fragments :: page_head('My Reviews', 'none')"></head>
+<body>
+<div class="container-fluid">
+  <div th:replace="navigation :: header_menu"></div>
+  <div th:replace="navigation :: search_nav"></div>
+  <div>
+    <h2>Reviews</h2>
+  </div>
+
+  <div>
+    <form th:action="@{/reviews/page/1}" class="form-inline m-3">
+      <input type="hidden" name="sortField" th:value="${sortField}">
+      <input type="hidden" name="sortDir" th:value="${sortDir}">
+
+      Filter:&nbsp;
+      <input type="search" name="reviewKeyword" th:value="${reviewKeyword}" class="form-control">
+      &nbsp;
+      &nbsp;
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-search"></i>
+      </button>
+      &nbsp;&nbsp;
+      <button type="button" class="btn btn-secondary" onclick="clearFilter()">
+        <i class="fas fa-eraser"></i>
+      </button>
+    </form>
+  </div>
+
+  <div class="full-details">
+    <table class="table table-bordered table-striped table-hover table-responsive-xl">
+      <thead class="table-dark">
+      <tr>
+        <th th:replace="fragments :: column_link('product', 'Product', 'none', '/reviews/page/')" />
+        <th th:replace="fragments :: column_link('headline', 'Headline', 'none', '/reviews/page/')" />
+        <th th:replace="fragments :: column_link('rating', 'Rating', 'none', '/reviews/page/')" />
+        <th th:replace="fragments :: column_link('reviewTime', 'Review Time', 'none', '/reviews/page/')" />
+        <th></th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr th:each="review : ${listReviews}">
+        <td><a th:href="@{'/c/' + ${review.product.category.alias} + '/' + ${review.product.alias}}" target="_blank">[[${review.product.shortName}]]</a></td>
+        <td>[[${review.headline}]]</td>
+        <td>[[${review.rating}]] <i class="far fa-star"></i></td>
+        <td>[[${review.reviewTime}]]</td>
+        <td>
+          <a class="fas fa-file-alt fa-2x icon-green link-detail-review"
+             th:href="@{'/reviews/detail/' + ${order.id}}"
+             title="View details of this review"></a>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="less-details p-2">
+    <th:block th:each="review : ${listReviews}">
+      <div class="row m-1">
+        <div class="col-10">
+          <div class="mb-1">
+            <span>[[${review.product.shortName}]]</span>
+          </div>
+          <div>
+            &nbsp;
+            <span>[[${review.rating}]] <i class="far fa-star"></i></span>
+            &nbsp;
+            <a class="fas fa-file-alt fa-2x icon-green link-detail-review"
+               th:href="@{'/reviews/detail/' + ${order.id}}"
+               title="View details of this review"></a>
+          </div>
+        </div>
+        <div>&nbsp;</div>
+      </div>
+    </th:block>
+  </div>
+
+  <div class="text-center m-1" th:if="${totalItems >0}">
+    <span>Showing Reviews # [[${startCount}]] to [[${endCount}]] of [[${totalItems}]]</span>
+  </div>
+
+  <div class="text-center m-1" th:unless="${totalItems >0}">
+    <span>No Reviews found</span>
+  </div>
+
+  <div th:if="${totalPages > 1}">
+    <nav>
+      <ul class="pagination justify-content-center flex-wrap">
+        <li th:class="${currentPage > 1 ? 'page-item' : 'page-item disabled'}">
+          <a th:replace="fragments :: page_link(1, 'First', '/reviews/page/')"></a>
+        </li>
+        <li th:class="${currentPage > 1 ? 'page-item' : 'page-item disabled'}">
+          <a th:replace="fragments :: page_link(${currentPage - 1}, 'Previous', '/reviews/page/')"></a>
+        </li>
+
+        <li th:class="${currentPage != i ? 'page-item' : 'page-item active'}"
+            th:each="i : ${#numbers.sequence(1, totalPages)}">
+          <a th:replace="fragments :: page_link(${i}, ${i}, '/reviews/page/')"></a>
+        </li>
+
+        <li th:class="${currentPage < totalPages ? 'page-item' : 'page-item disabled'}">
+          <a th:replace="fragments :: page_link(${currentPage + 1}, 'Next', '/reviews/page/')"></a>
+        </li>
+        <li th:class="${currentPage < totalPages ? 'page-item' : 'page-item disabled'}">
+          <a th:replace="fragments :: page_link(${totalPages}, 'Last', '/reviews/page/')"></a>
+        </li>
+      </ul>
+    </nav>
+  </div>
+
+
+  <div class="modal fade" id="reviewDetailModal">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+      </div>
+    </div>
+  </div>
+
+  <div>&nbsp;</div>
+
+  <div th:replace="navigation :: footer_menu"></div>
+  <div th:replace="fragments :: footer"></div>
+</div>
+<script type="text/javascript">
+  moduleURL = "[[@{/reviews}]]";
+
+  function clearFilter() {
+    window.location = moduleURL;
+  }
+
+  $(document).ready(function() {
+    handleDetailLink();
+  });
+
+  function handleDetailLink() {
+    $(".link-detail-review").on("click", function(e) {
+      e.preventDefault();
+      $('#reviewDetailModal').modal('show').find('.modal-content').load($(this).attr('href'));
+    });
+  }
+</script>
+</body>
+</html>

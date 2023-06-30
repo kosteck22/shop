@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="https://thymeleaf.org">
+<head th:fragment="page_head(title, remove)" th:remove="${remove}">
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0">
+
+    <title>[[${title}]]</title>
+    <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/fontawesome/all.css}">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}">
+    <script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/popper.js/umd/popper.min.js}"></script>
+    <script type="text/javascript" th:src="@{/webjars/bootstrap/js/bootstrap.min.js}"></script>
+    <script type="text/javascript" th:src="@{/js/common.js}"></script>
+</head>
+<body>
+    <th th:fragment="column_link(fieldName, columnLabel, removeTag, pathURL)" th:remove="${removeTag}">
+        <a class="text-white"
+           th:href="@{${pathURL} + ${currentPage} + '?sortField=' + ${fieldName} + '&sortDir=' + ${sortField != fieldName ? sortDir : reverseSortDir} +
+                               ${keyword != null ? '&keyword=' + keyword : ''} + ${categoryId != null ? '&categoryId=' + categoryId : ''}}">
+            [[${columnLabel}]]
+        </a>
+        <span th:if="${sortField == fieldName}"
+              th:class="${sortDir == 'asc' ? 'fas fa-sort-up' : 'fas fa-sort-down'}"></span>
+    </th>
+
+    <a th:fragment="page_link(pageNum, label, pathURL)"
+        class="page-link"
+       th:href="@{${pathURL} + ${pageNum} + '?sortField=' + ${sortField} + '&sortDir=' + ${sortDir} +
+                ${limit != null ? '&limit=' + limit : ''} +
+                ${keyword != null ? '&keyword=' + keyword : ''} +
+                ${categoryId != null ? '&categoryId=' + categoryId : ''}}">
+        [[${label}]]
+    </a>
+
+    <div th:fragment="footer" class="text-center">
+        <p>Shopme Control Panel - Copyright &copy; Shopme</p>
+    </div>
+
+    <div th:fragment="object_actions(pathURL, objectId, objectName)" th:remove="tag">
+            <a th:href="@{${pathURL} + '/edit/' + ${objectId}}">
+                <i class="fa-solid fa-user-pen icon-dark icon-size-hover"
+                   title="Edit this + ${objectName}"></i>
+            </a>
+        <a th:href="@{${pathURL} + '/delete/' + ${objectId}}"
+           th:brandId="${brand.id}"
+           class="link-delete">
+            <i class="fa-solid fa-user-slash icon-gray
+                                      icon-size-hover delete-icon"
+               title="Delete this + ${objectName}"></i>
+        </a>
+
+    </div>
+
+    <div th:fragment="category_actions" th:remove="tag">
+            <a th:href="@{'/categories/edit/' + ${category.id}}">
+                <i class="fa-solid fa-user-pen icon-dark icon-size-hover"
+                   title="Edit this category"></i>
+            </a>
+            <th:block th:if="${category.hasChildren == false}">
+                <a th:if="${category.hasChildren == false}"
+                   th:href="@{'/categories/delete/' + ${category.id}}"
+                   th:categoryId="${category.id}"
+                   class="link-delete">
+                    <i class="fa-solid fa-user-slash icon-gray
+                                      icon-size-hover delete-icon"
+                       title="Delete this category"></i>
+                </a>
+            </th:block>
+        </div>
+
+    <div th:fragment="object_enabled(enabled, objectName, objectURL)">
+        <a th:if="${enabled == true}"
+           th:href="@{${objectURL} + '/enabled/false'}"
+           title="Disable">
+            <i class="fa-solid fa-circle-check fa-xl icon-dark icon-size-hover"></i>
+        </a>
+        <a th:if="${enabled == false}"
+           th:href="@{${objectURL} + '/enabled/true'}"
+           title="Enable">
+            <i class="fa-regular fa-circle-xmark fa-xl icon-gray icon-size-hover"></i>
+        </a>
+    </div>
+
+<div th:fragment="format_currency(total)" th:tag="tag">
+    <span th:if="${CURRENCY_SYMBOL_POSITION == 'Before price'}" th:remove="tag">[[${CURRENCY_SYMBOL}]]</span>
+    [[${#numbers.formatDecimal(total, 1, THOUSANDS_POINT_TYPE, DECIMAL_DIGITS, DECIMAL_POINT_TYPE)}]]
+    <span th:if="${CURRENCY_SYMBOL_POSITION== 'After price'}" th:remove="tag">[[${CURRENCY_SYMBOL}]]</span>
+</div>
+
+<div th:fragment="format_time(dateTime)" th:remove="tag">
+    <span th:text="${#dates.format(dateTime, 'yyyy-MM-dd HH:mm:ss')}"></span>
+</div>
+
+<div th:fragment="currency_input(amount)" th:remove="tag">
+    <input type="text" readonly class="form-control" th:value="${(CURRENCY_SYMBOL_POSITION == 'Before price' ? CURRENCY_SYMBOL : '')
+    + #numbers.formatDecimal(amount, 1, THOUSANDS_POINT_TYPE, DECIMAL_DIGITS, DECIMAL_POINT_TYPE) +
+    (CURRENCY_SYMBOL_POSITION == 'After price' ? CURRENCY_SYMBOL : '')}">
+</div>
+<div th:fragment="float_input(amount, fieldName)" th:remove="tag">
+  <input type="text" required class="form-control" th:field="${fieldName}" th:value="${#numbers.formatDecimal(amount, 1, THOUSANDS_POINT_TYPE, DECIMAL_DIGITS, DECIMAL_POINT_TYPE)}">
+</div>
+</body>
+</html>

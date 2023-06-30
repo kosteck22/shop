@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="https://thymeleaf.org">
+<head th:replace="fragments :: page_head('Shop Kong', 'none')"></head>
+<body>
+<div class="container-fluid">
+    <div th:replace="navigation :: header_menu"></div>
+    <div th:replace="navigation :: search_nav"></div>
+    <div>
+        <h1>Shop!</h1>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-2" th:each="cat : ${listCategories}">
+            <div><img th:src="@{${cat.imagePath}}" width="80px;"></div>
+            <div>
+                <a th:href="@{'/c/' + ${cat.alias}}">[[${cat.name}]]</a>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="navigation :: footer_menu"></div>
+    <div th:replace="fragments :: footer"></div>
+</div>
+</body>
+</html>

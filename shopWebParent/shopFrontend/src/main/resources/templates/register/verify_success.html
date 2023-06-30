@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="https://thymeleaf.org">
+<head th:replace="fragments :: page_head('Verification Succeeded!', 'none')"></head>
+<body>
+<div class="container-fluid">
+    <div th:replace="navigation :: header_menu"></div>
+    <div class="text-center">
+        <h1>Customer Verification</h1>
+        <h4>Congratulations! Your account has been verified.</h4>
+        <p><a th:href="@{/login}">Login now</a></p>
+    </div>
+
+    <div>&nbsp;</div>
+
+    <div th:replace="navigation :: footer_menu"></div>
+    <div th:replace="fragments :: footer"></div>
+</div>
+</body>
+</html>

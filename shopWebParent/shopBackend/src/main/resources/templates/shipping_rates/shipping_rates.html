@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html xmlns:th="https://thymeleaf.org">
+<head th:replace="fragments :: page_head('Shipping Rates - Admin Panel', 'none')"></head>
+<body>
+<div class="container-fluid">
+
+    <div th:replace="navigation :: menu"></div>
+    <div>
+        <h2>Manage Shipping Rates</h2>
+        <div class="mb-3">
+            <div class="input-group">
+                <div class="row g-3 align-items-center">
+                    <div class="col-auto">
+                         <a th:href="@{/shipping_rates/new}"><button type="button" class="btn btn-primary">Create New Shipping Rate</button></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+    <div th:if="${message != null}" class="alert alert-success text-center">
+        [[${message}]]
+    </div>
+    <div>
+        <form th:action="@{/shipping_rates/page/1}" class="form-inline m-3">
+            <input type="hidden" name="sortField" th:value="${sortField}">
+            <input type="hidden" name="sortDir" th:value="${sortDir}">
+            <div class="input-group">
+                <div class="row g-3 align-items-center">
+                    <div class="col-auto">
+                        <input type="search" name="keyword" th:value="${keyword}"
+                               class="form-control" required id="form1" placeholder="Search" aria-label="Search">
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-outline-primary">
+                            <i class="fas fa-search"></i>
+                        </button>
+                    </div>
+                    <div class="col-auto">
+                         <button type="button" th:class="${keyword == null ? 'btn btn-outline-secondary disabled' : 'btn btn-outline-secondary'}" onclick="clearFilter()">Clear</button>
+                    </div>
+            </div>
+            </div>
+        </form>
+    </div>
+    <div class="full-details">
+        <table class="table table-bordered table-striped table-hover table-responsive-xl">
+            <thead class="table-dark">
+                <tr>
+                    <th th:replace="fragments :: column_link('id', 'ID', 'none', '/shipping_rates/page/')" />
+                    <th th:replace="fragments :: column_link('country', 'Country', 'none', '/shipping_rates/page/')" />
+                    <th th:replace="fragments :: column_link('state', 'State', 'none', '/shipping_rates/page/')" />
+                    <th th:replace="fragments :: column_link('rate', 'Rate', 'none', '/shipping_rates/page/')" />
+                    <th th:replace="fragments :: column_link('days', 'Days', 'none', '/shipping_rates/page/')" />
+                    <th th:replace="fragments :: column_link('codSupported', 'COD Supported', 'none', '/shipping_rates/page/')" />
+
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="rate : ${shippingRates}">
+                    <td>[[${rate.id}]]</td>
+                    <td>[[${rate.country.name}]]</td>
+                    <td>[[${rate.state}]]</td>
+                    <td>[[${rate.days}]]</td>
+                    <td class="text-center">
+                        <div th:replace="shipping_rates/shipping_rates_fragment :: cod_support"></div>
+                    </td>
+                    <td>
+                        <a th:href="@{'/shipping_rates/edit/' + ${rate.id}}">
+                            <i class="fa-solid fa-user-pen icon-dark icon-size-hover"
+                               title="Edit this rate"></i>
+                        </a>
+                        &nbsp;
+                        <a th:href="@{'/shipping_rates/delete/' + ${rate.id}}"
+                           th:rateId="${rate.id}"
+                           class="link-delete">
+                            <i class="fa-solid fa-user-slash icon-gray
+                                      icon-size-hover delete-icon"
+                               title="Delete this rate"></i>
+                        </a>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="less-details">
+        <div th:each="rate : ${shippingRates}" class="row m-1">
+            <div class="col-4">
+                <span><b>[[${rate.country.name}]]</b></span>
+                <br>
+                <span>[[${rate.state}]]</span>
+            </div>
+            <div class="col-8">
+                <div th:replace="shipping_rates/shipping_rates_fragment :: cod_support"></div>
+                <div>&nbsp;</div>
+                <a th:href="@{'/shipping_rates/edit/' + ${rate.id}}">
+                    <i class="fa-solid fa-user-pen icon-dark icon-size-hover"
+                           title="Edit this rate"></i>
+                </a>
+                &nbsp;
+                <a th:href="@{'/shipping_rates/delete/' + ${rate.id}}"
+                       th:rateId="${rate.id}"
+                       class="link-delete">
+                    <i class="fa-solid fa-user-slash icon-gray
+                                      icon-size-hover delete-icon"
+                           title="Delete this user"></i>
+                </a>
+            </div>
+            <div>
+                &nbsp;
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center m-1" th:if="${totalItems >0}">
+        <span>Showing rates # [[${startCount}]] to [[${endCount}]] of [[${totalItems}]]</span>
+    </div>
+
+    <div class="text-center m-1" th:unless="${totalItems >0}">
+        <span>No rates found</span>
+    </div>
+
+    <div th:if="${totalPages > 1}">
+        <nav>
+            <ul class="pagination justify-content-center flex-wrap">
+                <li th:class="${currentPage > 1 ? 'page-item' : 'page-item disabled'}">
+                    <a th:replace="fragments :: page_link(1, 'First', '/shipping_rates/page/')"></a>
+                </li>
+                <li th:class="${currentPage > 1 ? 'page-item' : 'page-item disabled'}">
+                    <a th:replace="fragments :: page_link(${currentPage - 1}, 'Previous', '/shipping_rates/page/')"></a>
+                </li>
+
+                <li th:class="${currentPage != i ? 'page-item' : 'page-item active'}"
+                    th:each="i : ${#numbers.sequence(1, totalPages)}">
+                    <a th:replace="fragments :: page_link(${i}, ${i}, '/shipping_rates/page/')"></a>
+                </li>
+
+                <li th:class="${currentPage < totalPages ? 'page-item' : 'page-item disabled'}">
+                    <a th:replace="fragments :: page_link(${currentPage + 1}, 'Next', '/shipping_rates/page/')"></a>
+                </li>
+                <li th:class="${currentPage < totalPages ? 'page-item' : 'page-item disabled'}">
+                    <a th:replace="fragments :: page_link(${totalPages}, 'Last', '/shipping_rates/page/')"></a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+
+    <div id="confirmModal" class="modal">
+        <span onclick="document.getElementById('confirmModal').style.display='none'" class="close" title="Close Modal">&times;</span>
+        <div class="modal-content">
+            <div class="container">
+                <h1>Delete Account</h1>
+                <p><span id="confirmText"></span></p>
+
+                <div class="clearfix">
+                    <button type="button" class="cancelbtn" onclick="document.getElementById('confirmModal').style.display='none'">Cancel</button>
+                    <a href="" id="yesButton"><button class="button btn-delete">Delete</button></a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div th:replace="fragments :: footer"></div>
+</div>
+<script type="text/javascript">
+
+    // Get the modal
+    var modal = document.getElementById('confirmModal');
+
+    $(document).ready(function() {
+        $(".link-delete").on("click", function(e) {
+            e.preventDefault();
+            link = $(this);
+            rateId = link.attr("rateId");
+            $("#yesButton").attr("href", link.attr("href"));
+            $("#confirmText").text("Are you sure you want to delete user with ID " + rateId + "?");
+            modal.style.display = "block";
+        });
+    });
+
+    function clearFilter() {
+        window.location = "[[@{/shipping_rates}]]"
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+</script>
+</body>
+</html>
