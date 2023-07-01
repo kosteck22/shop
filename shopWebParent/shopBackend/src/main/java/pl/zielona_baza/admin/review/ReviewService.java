@@ -18,7 +18,7 @@ public class ReviewService {
     @Autowired private ProductRepository productRepository;
 
     public void listByPage(int pageNum, PagingAndSortingHelper helper) {
-        helper.listEntities(pageNum, REVIEWS_PER_PAGE, reviewRepository);
+        //helper.listEntities(pageNum, REVIEWS_PER_PAGE, reviewRepository);
     }
 
     public Review get(Integer id) {

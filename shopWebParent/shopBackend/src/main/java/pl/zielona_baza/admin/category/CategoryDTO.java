@@ -1,4 +1,4 @@
-package pl.zielona_baza.admin.brand;
+package pl.zielona_baza.admin.category;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -17,8 +17,11 @@ import java.util.*;
 public class CategoryService {
     public static final int CATEGORIES_PER_PAGE = 20;
 
-    @Autowired
-    private CategoryRepository categoryRepository;
+    private final CategoryRepository categoryRepository;
+
+    public CategoryService(CategoryRepository categoryRepository) {
+        this.categoryRepository = categoryRepository;
+    }
 
     public List<Category> listAll(String sortDir, String prefixSubCategory) {
         List<Category> rootCategories = categoryRepository.findRootCategories(Sort.by("name").ascending());

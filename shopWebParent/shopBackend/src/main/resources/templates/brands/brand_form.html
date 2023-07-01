@@ -7,6 +7,10 @@
   <div>
     <h2>Manage Brand | [[${pageTitle}]]</h2>
   </div>
+
+  <div th:if="${message != null}" class="alert alert-danger text-center">
+    [[${message}]]
+  </div>
   <div>
     <form th:action="@{/brands/save}" method="post" style="max-width: 500px; margin: 0 auto"
           enctype="multipart/form-data"
@@ -96,7 +100,7 @@
 
   function checkUnique(form) {
     brandId = $("#id").val();
-    brandName = $("#name").val();
+    brandName = $("#name").val().trim();
 
     csrfValue = $("input[name='_csrf']").val();
 
@@ -109,6 +113,8 @@
         form.submit();
       } else if (response == "Duplicate") {
         showModalDialog("Warning", "There is another brand having same name " + brandName);
+      } else if (response == "Bad Name") {
+        showModalDialog("Warning", "Brand name is not valid");
       } else {
         showModalDialog("Error", "Unknown response from server");
       }

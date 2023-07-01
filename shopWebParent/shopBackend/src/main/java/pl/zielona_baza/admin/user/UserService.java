@@ -35,7 +35,7 @@ public class UserService {
     }
 
     public void listByPage(int pageNum, PagingAndSortingHelper helper) {
-        helper.listEntities(pageNum, USERS_PER_PAGE, userRepository);
+        //helper.listEntities(pageNum, USERS_PER_PAGE, userRepository);
     }
 
     public List<Role> listRoles() { return roleRepository.findAll(); }

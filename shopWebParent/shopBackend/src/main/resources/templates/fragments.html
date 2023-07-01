@@ -41,14 +41,14 @@
     <div th:fragment="object_actions(pathURL, objectId, objectName)" th:remove="tag">
             <a th:href="@{${pathURL} + '/edit/' + ${objectId}}">
                 <i class="fa-solid fa-user-pen icon-dark icon-size-hover"
-                   title="Edit this + ${objectName}"></i>
+                   th:title="'Edit this ' + ${objectName}"></i>
             </a>
         <a th:href="@{${pathURL} + '/delete/' + ${objectId}}"
            th:brandId="${brand.id}"
            class="link-delete">
             <i class="fa-solid fa-user-slash icon-gray
                                       icon-size-hover delete-icon"
-               title="Delete this + ${objectName}"></i>
+               th:title="'Delete this ' + ${objectName}"></i>
         </a>
 
     </div>

@@ -27,7 +27,7 @@ public class ProductService {
     }
 
     public void listByPage(Integer pageNum, PagingAndSortingHelper helper, Integer categoryId) {
-        Pageable pageable = helper.createPageable(PRODUCTS_PER_PAGE, pageNum);
+        /*Pageable pageable = helper.createPageable(PRODUCTS_PER_PAGE, pageNum);
         String keyword = helper.getKeyword();
         Page<Product> page = null;
 
@@ -46,16 +46,16 @@ public class ProductService {
                 page = productRepository.findAll(pageable);
             }
         }
-        helper.updateModelAttributes(pageNum, page);
+        helper.updateModelAttributes(pageNum, page);*/
     }
 
     public void searchProducts(int pageNum, PagingAndSortingHelper helper) {
-        Pageable pageable = helper.createPageable(PRODUCTS_PER_PAGE, pageNum);
+        /*Pageable pageable = helper.createPageable(PRODUCTS_PER_PAGE, pageNum);
         String keyword = helper.getKeyword();
 
         Page<Product> page = productRepository.searchProductsByName(keyword, pageable);
 
-        helper.updateModelAttributes(pageNum, page);
+        helper.updateModelAttributes(pageNum, page);*/
     }
 
     public Product save(Product product) {

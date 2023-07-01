@@ -1,4 +1,4 @@
-package pl.zielona_baza.admin.category.controller;
+package pl.zielona_baza.admin.category;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;

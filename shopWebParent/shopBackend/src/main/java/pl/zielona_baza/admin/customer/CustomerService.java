@@ -24,7 +24,7 @@ public class CustomerService {
     @Autowired private CountryRepository countryRepository;
 
     public void listByPage(Integer pageNum, PagingAndSortingHelper helper) {
-       helper.listEntities(pageNum, CUSTOMERS_PER_PAGE, customerRepository);
+       //helper.listEntities(pageNum, CUSTOMERS_PER_PAGE, customerRepository);
     }
 
     public void updateCustomerEnabledStatus(Integer id, boolean enabled) {

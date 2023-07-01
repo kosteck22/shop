@@ -50,8 +50,8 @@ public class OrderService {
         } else {
             page = orderRepository.findAll(pageable);
         }
-
-        helper.updateModelAttributes(pageNum, page);
+/*
+        helper.updateModelAttributes(pageNum, page);*/
     }
 
     public Order get(Integer id) {

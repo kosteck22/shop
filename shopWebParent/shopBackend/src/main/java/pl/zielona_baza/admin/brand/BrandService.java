@@ -1,25 +1,24 @@
 package pl.zielona_baza.admin.brand;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
-import org.springframework.web.method.support.ModelAndViewContainer;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.multipart.MultipartFile;
+import pl.zielona_baza.admin.AmazonS3Util;
+import pl.zielona_baza.admin.category.CategoryDTO;
+import pl.zielona_baza.admin.exception.ValidationException;
 import pl.zielona_baza.admin.paging.PagingAndSortingHelper;
-import pl.zielona_baza.admin.paging.PagingAndSortingValidator;
 import pl.zielona_baza.common.entity.Brand;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 import static pl.zielona_baza.admin.paging.PagingAndSortingValidator.*;
 
 @Service
 public class BrandService {
 
-    private static final List<String> availableSortFields = new ArrayList<>(List.of("id", "name"));
+    private static final List<String> SORTABLE_FIELDS_AVAILABLE = new ArrayList<>(List.of("id", "name"));
     private static final int BRANDS_PER_PAGE = 10;
 
     private final BrandRepository brandRepository;
@@ -28,42 +27,85 @@ public class BrandService {
         this.brandRepository = brandRepository;
     }
 
-    public void listByPage(Integer pageNumber, String sortField, String sortDir, Integer limit, String keyword, ModelAndViewContainer model) {
+    public void listByPage(Integer pageNumber, String sortField, String sortDir, Integer limit, String keyword, Model model) {
         pageNumber = validatePage(pageNumber);
         limit = validateLimit(limit, BRANDS_PER_PAGE);
-        sortField = validateSortField(sortField, availableSortFields, "name");
+        sortField = validateSortField(sortField, SORTABLE_FIELDS_AVAILABLE, "name");
         sortDir = validateSortDir(sortDir);
 
-        PagingAndSortingHelper helper = new PagingAndSortingHelper(model, "listBrands", sortField, sortDir, keyword, limit);
+        PagingAndSortingHelper helper = new PagingAndSortingHelper( "listBrands", sortField, sortDir, keyword, limit);
 
-        helper.listEntities(pageNumber, brandRepository);
+        helper.listEntities(pageNumber, brandRepository, model);
     }
 
-    public Brand save(Brand brand) {
-        return brandRepository.save(brand);
+    public void save(Brand brand, MultipartFile file) throws IOException, ValidationException {
+        if (brand.getName() != null) brand.setName(brand.getName().trim());
+
+        if (!isNameValid(brand.getId(), brand.getName())) {
+            throw new ValidationException("Brand name is not valid try another one");
+        }
+
+        // New Brand
+        if (brand.getId() == null || brand.getId() == 0) {
+            if (file.isEmpty()) {
+                throw new ValidationException("File image cannot be empty");
+            }
+        }
+        // Edit Brand
+        else {
+            if (file.isEmpty()) {
+                brandRepository.save(brand);
+                return;
+            }
+        }
+
+        //Saves image to Amazon S3
+        String fileName = brand.getName() + UUID.randomUUID();
+        brand.setLogo(fileName);
+
+        Brand savedBrand = brandRepository.save(brand);
+        String uploadDir = "brand-logos/" + savedBrand.getId();
+
+        AmazonS3Util.removeFolder(uploadDir);
+        AmazonS3Util.uploadFile(uploadDir, fileName, file.getInputStream());
     }
 
-    public Brand get(Integer id) throws BrandNotFoundException {
-        try {
-            return brandRepository.findById(id).get();
-        } catch (NoSuchElementException ex) {
-            throw new BrandNotFoundException("Brand with ID " + id + " not found.");
+    public boolean isNameValid(Integer id, String name) {
+        if (name == null || name.length() < 2 || name.length() > 45) return false;
+
+        boolean isCreatingNew = (id == null || id == 0);
+        Brand brand = brandRepository.findByName(name);
+
+        if (isCreatingNew) {
+            return brand == null;
+        } else {
+            return brand == null || id.equals(brand.getId());
         }
     }
 
     public void delete(Integer id) throws BrandNotFoundException {
-        Brand brand = get(id);
+        Brand brand = getById(id);
         brandRepository.delete(brand);
+
+        String brandDir = "brand-logos/" + id;
+        AmazonS3Util.removeFolder(brandDir);
+    }
+
+    public Brand getById(Integer id) throws BrandNotFoundException {
+        return brandRepository.findById(id)
+                .orElseThrow(() -> new BrandNotFoundException("Brand with ID " + id + " not found."));
     }
 
     public String checkUnique(Integer id, String name) {
-        boolean isCreatingNew = (id == null || id == 0);
-        Brand brandByName = brandRepository.findByName(name);
+        if (name == null || name.trim().length() < 2) return "Bad Name";
 
-        if(isCreatingNew) {
-            if (brandByName != null) return "Duplicate";
+        boolean isCreatingNew = (id == null || id == 0);
+        Brand brand = brandRepository.findByName(name.trim());
+
+        if (isCreatingNew) {
+            if (brand != null) return "Duplicate";
         } else {
-            if (id != brandByName.getId() && brandByName != null) {
+            if (brand != null && !id.equals(brand.getId())) {
                 return "Duplicate";
             }
         }
@@ -73,5 +115,16 @@ public class BrandService {
 
     public List<Brand> listAll() {
         return brandRepository.findAllProjection();
+    }
+
+    public List<CategoryDTO> getListCategoriesByBrandId(Integer id) {
+        return brandRepository.findById(id)
+                .orElseThrow(BrandNotFoundRestException::new)
+                .getCategories()
+                .stream()
+                .map(cat -> CategoryDTO.builder()
+                        .id(cat.getId())
+                        .name(cat.getName())
+                        .build()).collect(Collectors.toList());
     }
 }

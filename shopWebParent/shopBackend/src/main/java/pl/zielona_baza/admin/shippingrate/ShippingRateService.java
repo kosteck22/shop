@@ -30,7 +30,7 @@ public class ShippingRateService {
     private ProductRepository productRepository;
 
     public void listByPage(int pageNum, PagingAndSortingHelper helper) {
-        helper.listEntities(pageNum, RATES_PER_PAGE, shippingRateRepository);
+        //helper.listEntities(pageNum, RATES_PER_PAGE, shippingRateRepository);
     }
 
     public List<Country> listAllCountries() {

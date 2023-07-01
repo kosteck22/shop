@@ -1,17 +1,16 @@
-package pl.zielona_baza.admin.brand.controller;
+package pl.zielona_baza.admin.brand;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.method.support.ModelAndViewContainer;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pl.zielona_baza.admin.AmazonS3Util;
 import pl.zielona_baza.admin.brand.BrandNotFoundException;
 import pl.zielona_baza.admin.brand.BrandService;
 import pl.zielona_baza.admin.category.CategoryService;
+import pl.zielona_baza.admin.exception.ValidationException;
 import pl.zielona_baza.common.entity.Brand;
 import pl.zielona_baza.common.entity.Category;
 
@@ -30,19 +29,18 @@ public class BrandController {
     }
 
     @GetMapping
-    public String listFirstPage(ModelAndViewContainer model) {
+    public String listFirstPage(Model model) {
         return listByPage(1, "name", "asc", null, 20, model);
     }
 
     @GetMapping("/page/{pageNum}")
     public String listByPage(@PathVariable("pageNum") Integer pageNum,
-                             @RequestParam(name = "sort", required = false) String sort,
+                             @RequestParam(name = "sortField", required = false) String sortField,
                              @RequestParam(name = "sortDir", required = false) String sortDir,
                              @RequestParam(name = "keyword", required = false) String keyword,
                              @RequestParam(name = "limit", required = false) Integer limit,
-                             ModelAndViewContainer model
-    ) {
-        brandService.listByPage(pageNum, sort, sortDir, limit, keyword, model);
+                             Model model) {
+        brandService.listByPage(pageNum, sortField, sortDir, limit, keyword, model);
 
         return "brands/brands";
     }
@@ -61,34 +59,30 @@ public class BrandController {
     @PostMapping("/save")
     public String saveBrand(Brand brand,
                             @RequestParam("fileImage") MultipartFile multipartFile,
-                            RedirectAttributes redirectAttributes) throws IOException {
-        if (!multipartFile.isEmpty()) {
-            String fileName = StringUtils.cleanPath(multipartFile.getOriginalFilename());
-            brand.setLogo(fileName);
+                            RedirectAttributes redirectAttributes,
+                            Model model) throws IOException {
+        try {
+            brandService.save(brand, multipartFile);
+        } catch (ValidationException ex) {
+            List<Category> listCategories = categoryService.listCategoriesUsedInForm();
 
-            Brand savedBrand = brandService.save(brand);
-            String uploadDir = "brand-logos/" + savedBrand.getId();
+            model.addAttribute("brand", brand);
+            model.addAttribute("listCategories", listCategories);
+            model.addAttribute("pageTitle", "Create new brand");
+            model.addAttribute("message", ex.getMessage());
 
-            AmazonS3Util.removeFolder(uploadDir);
-            AmazonS3Util.uploadFile(uploadDir, fileName, multipartFile.getInputStream());
-
-            //Upload to the file system
-            //FileUploadUtil.cleanDir(uploadDir);
-            //FileUploadUtil.saveFile(uploadDir, fileName, multipartFile);
-        } else {
-            brandService.save(brand);
+            return "brands/brand_form";
         }
-
         redirectAttributes.addFlashAttribute("message", "The brand has been saved successfully.");
         return "redirect:/brands";
     }
 
     @GetMapping("/edit/{id}")
     public String editBrand(@PathVariable(name = "id") Integer id,
-                     Model model,
-                     RedirectAttributes redirectAttributes) {
+                            Model model,
+                            RedirectAttributes redirectAttributes) {
         try {
-            Brand brand = brandService.get(id);
+            Brand brand = brandService.getById(id);
             List<Category> listCategories = categoryService.listCategoriesUsedInForm();
 
             model.addAttribute("brand", brand);
@@ -108,10 +102,6 @@ public class BrandController {
                               RedirectAttributes redirectAttributes) {
         try {
             brandService.delete(id);
-            String brandDir = "brand-logos/" + id;
-            AmazonS3Util.removeFolder(brandDir);
-
-            //FileUploadUtil.removeDir(brandDir);
 
             redirectAttributes.addFlashAttribute("message", "The brand with ID " + id +
                     " has been deleted successfully");
