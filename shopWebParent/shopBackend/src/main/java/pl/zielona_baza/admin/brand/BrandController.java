@@ -2,13 +2,9 @@ package pl.zielona_baza.admin.brand;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import pl.zielona_baza.admin.AmazonS3Util;
-import pl.zielona_baza.admin.brand.BrandNotFoundException;
-import pl.zielona_baza.admin.brand.BrandService;
 import pl.zielona_baza.admin.category.CategoryService;
 import pl.zielona_baza.admin.exception.ValidationException;
 import pl.zielona_baza.common.entity.Brand;
@@ -30,15 +26,15 @@ public class BrandController {
 
     @GetMapping
     public String listFirstPage(Model model) {
-        return listByPage(1, "name", "asc", null, 20, model);
+        return listByPage(1, "name", "asc", 20, null,  model);
     }
 
     @GetMapping("/page/{pageNum}")
     public String listByPage(@PathVariable("pageNum") Integer pageNum,
                              @RequestParam(name = "sortField", required = false) String sortField,
                              @RequestParam(name = "sortDir", required = false) String sortDir,
-                             @RequestParam(name = "keyword", required = false) String keyword,
                              @RequestParam(name = "limit", required = false) Integer limit,
+                             @RequestParam(name = "keyword", required = false) String keyword,
                              Model model) {
         brandService.listByPage(pageNum, sortField, sortDir, limit, keyword, model);
 

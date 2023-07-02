@@ -31,7 +31,7 @@ public class Category {
 
     private boolean enabled;
 
-    @Column(name = "all_parent_ids", length = 256, nullable = true)
+    @Column(name = "all_parent_ids", length = 256)
     private String allParentIds;
 
     @OneToOne
@@ -50,7 +50,7 @@ public class Category {
     }
 
     public static Category copyFull(Category category) {
-        Category copyCategory = Category.builder()
+        return Category.builder()
                 .id(category.getId())
                 .alias(category.getAlias())
                 .name(category.getName())
@@ -58,8 +58,6 @@ public class Category {
                 .enabled(category.isEnabled())
                 .parent(category.getParent())
                 .build();
-
-        return copyCategory;
     }
 
     public static Category copyFull(Category subCategory, String name) {
@@ -90,8 +88,7 @@ public class Category {
     }
     @Transient
     public boolean isHasChildren() {
-        if (this.children.size() > 0) return true;
-        return false;
+        return this.children.size() > 0;
     }
 
     @Override

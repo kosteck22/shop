@@ -12,9 +12,11 @@ import pl.zielona_baza.admin.category.CategoryService;
 
 @RestController
 public class CategoryRestController {
+    private final CategoryService categoryService;
 
-    @Autowired
-    private CategoryService categoryService;
+    public CategoryRestController(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
 
     @PostMapping("/categories/check_unique")
     public ResponseEntity<String> checkUnique(@RequestParam("id") Integer id, @RequestParam("name") String name,

@@ -20,7 +20,6 @@ public class BrandService {
 
     private static final List<String> SORTABLE_FIELDS_AVAILABLE = new ArrayList<>(List.of("id", "name"));
     private static final int BRANDS_PER_PAGE = 10;
-
     private final BrandRepository brandRepository;
 
     public BrandService(BrandRepository brandRepository) {
@@ -39,19 +38,19 @@ public class BrandService {
     }
 
     public void save(Brand brand, MultipartFile file) throws IOException, ValidationException {
+        //Validate brand name
         if (brand.getName() != null) brand.setName(brand.getName().trim());
-
         if (!isNameValid(brand.getId(), brand.getName())) {
             throw new ValidationException("Brand name is not valid try another one");
         }
 
-        // New Brand
+        // New brand
         if (brand.getId() == null || brand.getId() == 0) {
             if (file.isEmpty()) {
                 throw new ValidationException("File image cannot be empty");
             }
         }
-        // Edit Brand
+        // Edit brand
         else {
             if (file.isEmpty()) {
                 brandRepository.save(brand);

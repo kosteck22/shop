@@ -17,6 +17,6 @@ public interface BrandRepository extends SearchRepository<Brand, Integer> {
     Brand findByName(String name);
 
     @Query("SELECT NEW Brand(b.id, b.name) FROM Brand b ORDER BY b.name ASC")
-    public List<Brand> findAllProjection();
+    List<Brand> findAllProjection();
 
 }
