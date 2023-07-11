@@ -1,19 +1,13 @@
 package pl.zielona_baza.admin.category;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 import pl.zielona_baza.admin.AmazonS3Util;
 import pl.zielona_baza.admin.exception.ValidationException;
 import pl.zielona_baza.admin.paging.PagingAndSortingHelper;
-import pl.zielona_baza.common.entity.Brand;
 import pl.zielona_baza.common.entity.Category;
 import pl.zielona_baza.common.exception.CategoryNotFoundException;
 
@@ -28,7 +22,7 @@ import static pl.zielona_baza.admin.paging.PagingAndSortingValidator.validateSor
 public class CategoryService {
 
     private static final List<String> SORTABLE_FIELDS_AVAILABLE = new ArrayList<>(List.of("id", "name", "alias", "enabled"));
-    public static final int CATEGORIES_PER_PAGE = 20;
+    private static final int CATEGORIES_PER_PAGE = 20;
 
     private final CategoryRepository categoryRepository;
 

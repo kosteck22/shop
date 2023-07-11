@@ -1,86 +1,139 @@
 package pl.zielona_baza.admin.customer;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.repository.query.Param;
+import org.springframework.beans.propertyeditors.StringTrimmerEditor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import pl.zielona_baza.admin.paging.PagingAndSortingHelper;
-import pl.zielona_baza.admin.paging.PagingAndSortingParam;
-import pl.zielona_baza.admin.user.UserService;
+import pl.zielona_baza.admin.exception.ValidationException;
 import pl.zielona_baza.common.entity.Country;
-import pl.zielona_baza.common.entity.Customer;
 
+import javax.validation.Valid;
 import java.util.List;
 
 @Controller
+@RequestMapping("/customers")
 public class CustomerController {
 
-    @Autowired
-    private CustomerService customerService;
+    private final CustomerService customerService;
 
-    @GetMapping("/customers")
-    public String listFirstPage() {
-        return "redirect:/customers/page/1?sortField=firstName&sortDir=asc";
+    public CustomerController(CustomerService customerService) {
+        this.customerService = customerService;
     }
 
-    @GetMapping("/customers/page/{pageNum}")
+    @GetMapping
+    public String listFirstPage(Model model) {
+        return listByPage(1, "email", "asc", 10, null, model);
+    }
+
+    @GetMapping("page/{pageNum}")
     public String listByPage(@PathVariable("pageNum") Integer pageNum,
-                             @PagingAndSortingParam(listName = "listCustomers") PagingAndSortingHelper helper) {
-        customerService.listByPage(pageNum, helper);
+                             @RequestParam(value = "sortField", required = false) String sortField,
+                             @RequestParam(value = "sortDir", required = false) String sortDir,
+                             @RequestParam(value = "limit", required = false) Integer limit,
+                             @RequestParam(value = "keyword", required = false) String keyword,
+                             Model model) {
+        customerService.listByPage(pageNum, sortField, sortDir, limit, keyword, model);
 
         return "customers/customers";
     }
 
-    @GetMapping("/customers/{id}/enabled/{status}")
+    @GetMapping("edit/{id}")
+    public String editCustomer(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            CustomerDTO customer = customerService.get(id);
+            List<Country> countries = customerService.listAllCountries();
+
+            model.addAttribute("customer", customer);
+            model.addAttribute("listCountries", countries);
+            model.addAttribute("pageTitle", "Edit Customer");
+
+            return "customers/customer_form";
+        } catch (CustomerNotFoundException ex) {
+            redirectAttributes.addFlashAttribute("message", ex.getMessage());
+
+            return "redirect:/customers";
+        }
+    }
+
+    @PostMapping("save")
+    public String saveCustomer(@Valid @ModelAttribute("customer") CustomerUpdateRequest customer, BindingResult result, Model model, RedirectAttributes redirectAttributes) {
+        if (result.hasErrors()) {
+            List<Country> countries = customerService.listAllCountries();
+
+            model.addAttribute("listCountries", countries);
+            model.addAttribute("pageTitle", "Edit Customer");
+
+            return "customers/customer_form";
+        }
+
+        try {
+            customerService.save(customer);
+
+            redirectAttributes.addFlashAttribute("message", "Customer saved successfully");
+        } catch (CustomerNotFoundException ex) {
+            redirectAttributes.addFlashAttribute("message", ex.getMessage());
+        } catch (ValidationException ex) {
+            List<Country> countries = customerService.listAllCountries();
+
+            model.addAttribute("customer", customer);
+            model.addAttribute("listCountries", countries);
+            model.addAttribute("pageTitle", "Edit Customer");
+
+            return "customers/customer_form";
+        }
+
+        return "redirect:/customers";
+    }
+
+    @GetMapping("delete/{id}")
+    public String deleteCustomer(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) {
+        try {
+            customerService.delete(id);
+
+            redirectAttributes.addFlashAttribute("message", "Customer deleted successfully");
+        } catch (CustomerNotFoundException ex) {
+            redirectAttributes.addFlashAttribute("message", ex.getMessage());
+        }
+
+        return "redirect:/customers";
+    }
+
+    @GetMapping("{id}/enabled/{status}")
     public String updateCustomerEnabledStatus(@PathVariable("id") Integer id,
                                               @PathVariable("status") boolean enabled,
                                               RedirectAttributes redirectAttributes) {
-        customerService.updateCustomerEnabledStatus(id, enabled);
-        String status = enabled ? "enabled" : "disabled";
-        String message = "The Customer ID " + id + " has been " + status;
-        redirectAttributes.addFlashAttribute("message", message);
+        try {
+            customerService.updateCustomerEnabledStatus(id, enabled);
+            String status = enabled ? "enabled" : "disabled";
+            String message = "The Customer ID %d has been ".formatted(id) + status;
+            redirectAttributes.addFlashAttribute("message", message);
+
+        } catch (CustomerNotFoundException ex) {
+            redirectAttributes.addFlashAttribute("message", ex.getMessage());
+        }
 
         return "redirect:/customers";
     }
 
-    @GetMapping("customers/detail/{id}")
+    @GetMapping("detail/{id}")
     public String viewCustomer(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
-        Customer customer = customerService.get(id);
-        model.addAttribute("customer", customer);
+        try {
+            CustomerDTO customer = customerService.get(id);
+            model.addAttribute("customer", customer);
 
-        return "customers/customer_detail_modal";
+            return "customers/customer_detail_modal";
+        } catch (CustomerNotFoundException ex) {
+            redirectAttributes.addFlashAttribute("message", ex.getMessage());
+
+            return "redirect:/customers";
+        }
     }
-
-    @GetMapping("/customers/edit/{id}")
-    public String editCustomer(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
-        Customer customer = customerService.get(id);
-        List<Country> countries = customerService.listAllCountries();
-        
-        model.addAttribute("customer", customer);
-        model.addAttribute("listCountries", countries);
-        model.addAttribute("pageTitle", "Edit Customer");
-
-        return "customers/customer_form";
-    }
-
-    @PostMapping("customers/save")
-    public String saveCustomer(Customer customer, RedirectAttributes redirectAttributes) {
-        customerService.save(customer);
-        redirectAttributes.addFlashAttribute("message", "Customer saved successfully");
-
-        return "redirect:/customers";
-    }
-
-    @GetMapping("customers/delete/{id}")
-    public String deleteCustomer(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) {
-        customerService.delete(id);
-        redirectAttributes.addFlashAttribute("message", "Customer deleted successfully");
-
-        return "redirect:/customers";
+    @InitBinder
+    public void initBinder(WebDataBinder dataBinder) {
+        StringTrimmerEditor stringTrimmerEditor = new StringTrimmerEditor(true);
+        dataBinder.registerCustomEditor(String.class, stringTrimmerEditor);
     }
 }

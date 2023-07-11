@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.ui.Model;
+import pl.zielona_baza.admin.DTOMapper;
 
 @Getter
 @Setter
@@ -32,9 +33,24 @@ public class PagingAndSortingHelper {
         this.limit = limit;
     }
 
-    public void updateModelAttributes(int pageNum, Page<?> page, Model model) {
-        int pageSize = page.getSize();
+    public void listEntities(int pageNum, SearchRepository<?, Integer> repository, Model model) {
+        listEntities(pageNum, repository, model, null);
+    }
 
+    public void listEntities(int pageNum, SearchRepository<?, Integer> repository, Model model, DTOMapper dtoMapper) {
+        Pageable pageable = createPageable(pageNum);
+        Page<?> page;
+
+        if (keyword != null) {
+            page = repository.findAll(keyword, pageable);
+        } else {
+            page = repository.findAll(pageable);
+        }
+        updateModelAttributes(pageNum, page, model, dtoMapper);
+    }
+
+    private void updateModelAttributes(int pageNum, Page<?> page, Model model, DTOMapper dtoMapper) {
+        int pageSize = page.getSize();
         long totalItems = page.getTotalElements();
         long startCount = (long) (pageNum - 1) * pageSize + 1;
         long endCount = startCount + pageSize - 1;
@@ -53,23 +69,15 @@ public class PagingAndSortingHelper {
         model.addAttribute("startCount", startCount);
         model.addAttribute("endCount", endCount);
         model.addAttribute("totalItems", totalItems);
-        model.addAttribute(listName, page.getContent());
-    }
 
-    public void listEntities(int pageNum, SearchRepository<?, Integer> repository, Model model) {
-        Pageable pageable = createPageable(pageNum);
-        Page<?> page;
-
-        if (keyword != null) {
-            page = repository.findAll(keyword, pageable);
+        if (dtoMapper == null) {
+            model.addAttribute(listName, page.getContent());
         } else {
-            page = repository.findAll(pageable);
+            model.addAttribute(listName, dtoMapper.convert(page.getContent()));
         }
-
-        updateModelAttributes(pageNum, page, model);
     }
 
-    public Pageable createPageable(int pageNum) {
+    private Pageable createPageable(int pageNum) {
         Sort sort = Sort.by(sortField);
         sort = sortDir.equals("desc") ? sort.descending() : sort.ascending();
 

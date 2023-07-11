@@ -1,9 +1,5 @@
 package pl.zielona_baza.admin.paging;
 
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-
 import java.util.List;
 
 public class PagingAndSortingValidator {

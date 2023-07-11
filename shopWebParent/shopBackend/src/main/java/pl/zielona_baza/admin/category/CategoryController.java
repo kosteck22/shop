@@ -116,8 +116,8 @@ public class CategoryController {
         try {
             categoryService.delete(id);
 
-            redirectAttributes.addFlashAttribute("message", "Category with ID " + id +
-                    " has been deleted successfully");
+            redirectAttributes.addFlashAttribute(
+                    "message", "Category with ID has been deleted %d successfully".formatted(id));
         } catch (CategoryNotFoundException | CategoryHasChildrenException ex) {
             redirectAttributes.addFlashAttribute("message", ex.getMessage());
         }

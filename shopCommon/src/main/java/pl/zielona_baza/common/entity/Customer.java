@@ -3,6 +3,7 @@ package pl.zielona_baza.common.entity;
 import lombok.*;
 
 import javax.persistence.*;
+import javax.validation.constraints.Email;
 import java.util.Date;
 
 @Entity
