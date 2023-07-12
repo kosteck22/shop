@@ -53,13 +53,13 @@ public class CustomerService {
                 .orElseThrow(() -> new CustomerNotFoundException("Customer not found with ID %d".formatted(id)));
     }
 
-    public void save(CustomerUpdateRequest customerUpdateRequest) throws ValidationException, CustomerNotFoundException {
+    public void save(CustomerDTO customerUpdateRequest) throws ValidationException, CustomerNotFoundException {
         //Checking if customer exist in DB
         Customer customerInDB = customerRepository.findById(customerUpdateRequest.getId())
                 .orElseThrow(() -> new CustomerNotFoundException("Customer you want to edit not found with ID %d".formatted(customerUpdateRequest.getId())));
 
         //Checking if country exist in DB
-        Country country = countryRepository.findById(customerUpdateRequest.getCountry())
+        Country country = countryRepository.findById(customerUpdateRequest.getCountry().getId())
                 .orElseThrow(() -> new ValidationException("Country not found. Pick correct one"));
 
         //Validate email
@@ -67,8 +67,7 @@ public class CustomerService {
             throw new ValidationException("Choose another email. This one is already taken");
         }
 
-
-        if (!customerUpdateRequest.getPassword().isEmpty()) {
+        if (customerUpdateRequest.getPassword() != null && !customerUpdateRequest.getPassword().isEmpty()) {
             String encodedPassword = passwordEncoder.encode(customerUpdateRequest.getPassword());
             customerInDB.setPassword(encodedPassword);
         }
@@ -79,7 +78,7 @@ public class CustomerService {
         customerInDB.setPhoneNumber(customerUpdateRequest.getPhoneNumber());
         customerInDB.setAddressLine1(customerUpdateRequest.getAddressLine1());
 
-        if (!customerUpdateRequest.getAddressLine2().isEmpty()) {
+        if (customerUpdateRequest.getAddressLine2() != null && !customerUpdateRequest.getAddressLine2().isEmpty()) {
             customerInDB.setAddressLine2(customerUpdateRequest.getAddressLine2());
         }
 

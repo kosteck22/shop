@@ -9,10 +9,17 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import pl.zielona_baza.admin.user.UserRepository;
 
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
+
+    private final UserRepository userRepository;
+
+    public WebSecurityConfig(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -104,7 +111,7 @@ public class WebSecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService() {
-        return new ShopUserDetailsService();
+        return new ShopUserDetailsService(userRepository);
     }
 
     @Bean

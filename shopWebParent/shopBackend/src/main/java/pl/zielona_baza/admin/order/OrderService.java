@@ -6,6 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.ui.Model;
 import pl.zielona_baza.admin.paging.PagingAndSortingHelper;
 import pl.zielona_baza.admin.setting.country.CountryRepository;
 import pl.zielona_baza.common.entity.Country;
@@ -14,26 +15,33 @@ import pl.zielona_baza.common.entity.order.OrderStatus;
 import pl.zielona_baza.common.entity.order.OrderTrack;
 import pl.zielona_baza.common.exception.OrderNotFoundException;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import static pl.zielona_baza.admin.paging.PagingAndSortingValidator.*;
+import static pl.zielona_baza.admin.paging.PagingAndSortingValidator.validateSortDir;
+
 @Service
 public class OrderService {
-    public static final int ORDERS_PER_PAGE = 10;
+    private static final int ORDERS_PER_PAGE = 10;
+    private static final List<String> SORTABLE_FIELDS_AVAILABLE = new ArrayList<>(
+            List.of("id", "customer", "total", "orderTime", "destination", "paymentMethod", "status"));
+    private final OrderRepository orderRepository;
+    private final CountryRepository countryRepository;
 
-    @Autowired
-    private OrderRepository orderRepository;
+    public OrderService(OrderRepository orderRepository, CountryRepository countryRepository) {
+        this.orderRepository = orderRepository;
+        this.countryRepository = countryRepository;
+    }
 
-    @Autowired
-    private CountryRepository countryRepository;
+    public void listByPage(Integer pageNumber, String sortField, String sortDir, Integer limit, String keyword, Model model) {
+        pageNumber = validatePage(pageNumber);
+        limit = validateLimit(limit, ORDERS_PER_PAGE);
+        sortField = validateSortField(sortField, SORTABLE_FIELDS_AVAILABLE, "orderTime");
+        sortDir = validateSortDir(sortDir);
 
-    public void listByPage(Integer pageNum, PagingAndSortingHelper helper) {
-        String sortField = helper.getSortField();
-        String sortDir = helper.getSortDir();
-        String keyword = helper.getKeyword();
-
-        Sort sort = null;
-
+        Sort sort;
         if ("destination".equals(sortField)) {
             sort = Sort.by("country").and(Sort.by("state")).and(Sort.by("city"));
         } else {
@@ -41,7 +49,7 @@ public class OrderService {
         }
 
         sort = sortDir.equals("asc") ? sort.ascending() : sort.descending();
-        Pageable pageable = PageRequest.of(pageNum - 1, ORDERS_PER_PAGE, sort);
+        Pageable pageable = PageRequest.of(pageNumber - 1, limit, sort);
 
         Page<Order> page = null;
 
@@ -50,8 +58,9 @@ public class OrderService {
         } else {
             page = orderRepository.findAll(pageable);
         }
-/*
-        helper.updateModelAttributes(pageNum, page);*/
+        PagingAndSortingHelper helper = new PagingAndSortingHelper( "listCustomers", sortField, sortDir, keyword, limit);
+
+        helper.updateModelAttributes(pageNumber, page, model);
     }
 
     public Order get(Integer id) {

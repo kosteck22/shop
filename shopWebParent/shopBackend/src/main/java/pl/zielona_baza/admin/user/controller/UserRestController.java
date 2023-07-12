@@ -1,7 +1,5 @@
 package pl.zielona_baza.admin.user.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -10,9 +8,11 @@ import pl.zielona_baza.admin.user.UserService;
 
 @RestController
 public class UserRestController {
+    private final UserService userService;
 
-    @Autowired
-    private UserService userService;
+    public UserRestController(UserService userService) {
+        this.userService = userService;
+    }
 
     @PostMapping("/users/check_email")
     public ResponseEntity<String> checkDuplicateEmail(@RequestParam(name = "id", required = false) Integer id,

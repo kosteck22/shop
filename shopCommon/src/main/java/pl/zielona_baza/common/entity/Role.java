@@ -14,7 +14,6 @@ import java.util.Objects;
 @Builder
 @AllArgsConstructor @NoArgsConstructor
 public class Role {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;

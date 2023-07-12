@@ -22,16 +22,16 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
-    @Column(length = 128, nullable = false, unique = true)
+    @Column(unique = true, nullable = false, length = 45)
     private String email;
 
-    @Column(length = 64, nullable = false)
+    @Column(nullable = false, length = 64)
     private String password;
 
-    @Column(name = "first_name", length = 45, nullable = false)
+    @Column(name = "first_name", nullable = false, length = 45)
     private String firstName;
 
-    @Column(name = "last_name", length = 45, nullable = false)
+    @Column(name = "last_name", nullable = false, length = 45)
     private String lastName;
 
     @Column(length = 64)
@@ -74,10 +74,10 @@ public class User {
     }
 
     public boolean hasRole(String role) {
-        return this.roles.stream().filter(r -> {
-            return r.getName().equals(role);
-        }).toList().size() > 0;
-
+        return !this.roles.stream()
+                .filter(r -> r.getName().equals(role))
+                .toList()
+                .isEmpty();
     }
 }
 

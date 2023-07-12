@@ -59,7 +59,10 @@ public class CustomerController {
     }
 
     @PostMapping("save")
-    public String saveCustomer(@Valid @ModelAttribute("customer") CustomerUpdateRequest customer, BindingResult result, Model model, RedirectAttributes redirectAttributes) {
+    public String saveCustomer(@Valid @ModelAttribute("customer") CustomerDTO customer,
+                               BindingResult result,
+                               Model model,
+                               RedirectAttributes redirectAttributes) {
         if (result.hasErrors()) {
             List<Country> countries = customerService.listAllCountries();
 
@@ -80,6 +83,7 @@ public class CustomerController {
 
             model.addAttribute("customer", customer);
             model.addAttribute("listCountries", countries);
+            model.addAttribute("message", ex.getMessage());
             model.addAttribute("pageTitle", "Edit Customer");
 
             return "customers/customer_form";
@@ -131,6 +135,7 @@ public class CustomerController {
             return "redirect:/customers";
         }
     }
+
     @InitBinder
     public void initBinder(WebDataBinder dataBinder) {
         StringTrimmerEditor stringTrimmerEditor = new StringTrimmerEditor(true);

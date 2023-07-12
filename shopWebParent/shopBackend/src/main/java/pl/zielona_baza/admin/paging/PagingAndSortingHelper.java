@@ -49,7 +49,11 @@ public class PagingAndSortingHelper {
         updateModelAttributes(pageNum, page, model, dtoMapper);
     }
 
-    private void updateModelAttributes(int pageNum, Page<?> page, Model model, DTOMapper dtoMapper) {
+    public void updateModelAttributes(int pageNum, Page<?> page, Model model) {
+        updateModelAttributes(pageNum, page, model, null);
+    }
+
+    public void updateModelAttributes(int pageNum, Page<?> page, Model model, DTOMapper dtoMapper) {
         int pageSize = page.getSize();
         long totalItems = page.getTotalElements();
         long startCount = (long) (pageNum - 1) * pageSize + 1;

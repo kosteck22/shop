@@ -17,9 +17,8 @@ import static pl.zielona_baza.admin.paging.PagingAndSortingValidator.*;
 
 @Service
 public class BrandService {
-
-    private static final List<String> SORTABLE_FIELDS_AVAILABLE = new ArrayList<>(List.of("id", "name"));
     private static final int BRANDS_PER_PAGE = 10;
+    private static final List<String> SORTABLE_FIELDS_AVAILABLE = new ArrayList<>(List.of("id", "name"));
     private final BrandRepository brandRepository;
 
     public BrandService(BrandRepository brandRepository) {
@@ -92,7 +91,7 @@ public class BrandService {
 
     public Brand getById(Integer id) throws BrandNotFoundException {
         return brandRepository.findById(id)
-                .orElseThrow(() -> new BrandNotFoundException("Brand with ID " + id + " not found."));
+                .orElseThrow(() -> new BrandNotFoundException("Brand with ID %d not found.".formatted(id)));
     }
 
     public String checkUnique(Integer id, String name) {

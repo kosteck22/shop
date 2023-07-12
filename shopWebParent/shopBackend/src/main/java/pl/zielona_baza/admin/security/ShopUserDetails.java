@@ -1,13 +1,8 @@
 package pl.zielona_baza.admin.security;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Component;
 import pl.zielona_baza.common.entity.Role;
 import pl.zielona_baza.common.entity.User;
 
@@ -19,7 +14,7 @@ import java.util.List;
 
 public class ShopUserDetails  implements UserDetails {
 
-    private User user;
+    private final User user;
 
     public ShopUserDetails(User user) {
         this.user = user;

@@ -22,6 +22,7 @@ public class CustomerDTOMapper implements DTOMapper<Customer, CustomerDTO> {
                 .country(customer.getCountry())
                 .createdAt(customer.getCreatedAt())
                 .enabled(customer.isEnabled())
+                .fullName(customer.getFullName())
                 .build();
     }
 }

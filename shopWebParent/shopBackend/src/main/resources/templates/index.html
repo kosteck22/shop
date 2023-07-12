@@ -8,6 +8,11 @@
     <div>
         <h1>Welcome to Admin Panel</h1>
     </div>
+
+    <div th:if="${message != null}" class="alert alert-success text-center">
+        [[${message}]]
+    </div>
+
     <div th:replace="fragments :: footer"></div>
 </div>
 </body>

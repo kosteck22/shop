@@ -4,9 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pl.zielona_baza.admin.paging.PagingAndSortingHelper;
 import pl.zielona_baza.admin.paging.PagingAndSortingParam;
@@ -30,29 +28,34 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
 @Controller
+@RequestMapping("/orders")
 public class OrderController {
     private final String defaultRedirectURL = "redirect:/orders/page/1?sortField=orderTime&sortDir=desc";
+    private final OrderService orderService;
 
-    @Autowired
-    private OrderService orderService;
+    private final SettingService settingService;
 
-    @Autowired
-    private SettingService settingService;
-
-    @GetMapping("/orders")
-    public String listFirstPage() {
-        return defaultRedirectURL;
+    public OrderController(OrderService orderService, SettingService settingService) {
+        this.orderService = orderService;
+        this.settingService = settingService;
     }
 
-    @GetMapping("/orders/page/{pageNum}")
-    public String listByPage(@PagingAndSortingParam (listName = "listOrders") PagingAndSortingHelper helper,
-                             @PathVariable("pageNum") Integer pageNum,
-                             Model model,
-                             HttpServletRequest request,
-                             @AuthenticationPrincipal ShopUserDetails loggedUser) {
-        orderService.listByPage(pageNum, helper);
-        loadCurrencySetting(request);
+    @GetMapping
+    public String listFirstPage(Model model, @AuthenticationPrincipal ShopUserDetails loggedUser) {
+        return listByPage(1, "orderTime", "desc", 10, null, model, loggedUser);
+    }
 
+    @GetMapping("/page/{pageNum}")
+    public String listByPage(@PathVariable("pageNum") Integer pageNum,
+                             @RequestParam(name = "sortField", required = false) String sortField,
+                             @RequestParam(name = "sortDir", required = false) String sortDir,
+                             @RequestParam(name = "limit", required = false) Integer limit,
+                             @RequestParam(name = "keyword", required = false) String keyword,
+                             Model model,
+                             @AuthenticationPrincipal ShopUserDetails loggedUser) {
+        orderService.listByPage(pageNum, sortField, sortDir, limit, keyword, model);
+       /* loadCurrencySetting(request);
+*/
         if (loggedUser.hasRole("Shipper") &&
            !loggedUser.hasRole("Admin") &&
            !loggedUser.hasRole("Salesperson")) {
@@ -62,7 +65,13 @@ public class OrderController {
         return "orders/orders";
     }
 
-    @GetMapping("/orders/detail/{id}")
+    private void loadCurrencySetting(HttpServletRequest request) {
+        List<Setting> currencySettings = settingService.getCurrencySettings();
+
+        currencySettings.forEach(s -> request.setAttribute(s.getKey(), s.getValue()));
+    }
+
+    @GetMapping("/detail/{id}")
     public String viewOrderDetails(@PathVariable("id") Integer id,
                                    Model model,
                                    RedirectAttributes redirectAttributes,
@@ -89,7 +98,7 @@ public class OrderController {
         }
     }
 
-    @GetMapping("/orders/delete/{id}")
+    @GetMapping("/delete/{id}")
     public String deleteOrder(@PathVariable("id") Integer id,
                               Model model,
                               RedirectAttributes redirectAttributes) {
@@ -103,13 +112,7 @@ public class OrderController {
 
         return defaultRedirectURL;
     }
-
-    private void loadCurrencySetting(HttpServletRequest request) {
-        List<Setting> currencySettings = settingService.getCurrencySettings();
-
-        currencySettings.forEach(s -> request.setAttribute(s.getKey(), s.getValue()));
-    }
-    @GetMapping("/orders/edit/{id}")
+    @GetMapping("/edit/{id}")
     public String editOrder(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes,
                             HttpServletRequest request) {
         try {
@@ -129,7 +132,7 @@ public class OrderController {
         }
     }
 
-    @PostMapping("/orders/save")
+    @PostMapping("/save")
     public String saveOrder(Order order, HttpServletRequest request, RedirectAttributes redirectAttributes) {
 
         updateProductDetails(order, request);

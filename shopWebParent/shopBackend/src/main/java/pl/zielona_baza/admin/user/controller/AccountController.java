@@ -1,55 +1,71 @@
 package pl.zielona_baza.admin.user.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication;
+import org.springframework.beans.propertyeditors.StringTrimmerEditor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.WebDataBinder;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import pl.zielona_baza.admin.FileUploadUtil;
 import pl.zielona_baza.admin.security.ShopUserDetails;
+import pl.zielona_baza.admin.user.UserDTO;
+import pl.zielona_baza.admin.user.UserNotFoundException;
 import pl.zielona_baza.admin.user.UserService;
-import pl.zielona_baza.common.entity.User;
 
+import javax.validation.Valid;
 import java.io.IOException;
 
 @Controller
 public class AccountController {
 
-    @Autowired
-    private UserService userService;
+    private final UserService userService;
+
+    public AccountController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping("/account")
-    public String viewDetails(@AuthenticationPrincipal ShopUserDetails loggedUser, Model model) {
-        String email = loggedUser.getUsername();
-        User user = userService.getUserByEmail(email);
-        model.addAttribute("user", user);
+    public String viewDetails(@AuthenticationPrincipal ShopUserDetails loggedUser,
+                              Model model,
+                              RedirectAttributes redirectAttributes) {
+        try {
+            String email = loggedUser.getUsername();
+            UserDTO user = userService.getUserByEmail(email);
+            model.addAttribute("user", user);
 
-        return "users/account_form";
+            return "users/account_form";
+        } catch (UserNotFoundException ex) {
+            redirectAttributes.addFlashAttribute("message", ex.getMessage());
+
+            return "redirect:/";
+        }
     }
 
     @PostMapping("/account/update")
-    public String saveDetails(User user, RedirectAttributes redirectAttributes,
-                              @RequestParam("image") MultipartFile multipartFile) throws IOException {
-
-        if(!multipartFile.isEmpty()) {
-            String fileName = StringUtils.cleanPath(multipartFile.getOriginalFilename());
-            user.setPhotos(fileName);
-            User updatedUser = userService.updateAccount(user);
-            String uploadDir = "user-photos/" + updatedUser.getId();
-            FileUploadUtil.cleanDir(uploadDir);
-            FileUploadUtil.saveFile(uploadDir, fileName, multipartFile);
-        } else {
-            if(user.getPhotos().isEmpty()) user.setPhotos(null);
-            userService.updateAccount(user);
+    public String saveDetails(@Valid @ModelAttribute("user") UserDTO userUpdateRequest,
+                              BindingResult result,
+                              RedirectAttributes redirectAttributes,
+                              @RequestParam("image") MultipartFile multipartFile,
+                              @AuthenticationPrincipal ShopUserDetails loggedUser) throws IOException {
+        if (result.hasErrors()) {
+            return "users/account_form";
         }
-        redirectAttributes.addFlashAttribute("message", "The account has been updated successfully.");
+        try {
+            String email = loggedUser.getUsername();
+            userService.updateAccount(userUpdateRequest, multipartFile, email);
+            redirectAttributes.addFlashAttribute("message", "The account has been updated successfully.");
 
-        return "redirect:/account";
+            return "redirect:/account";
+        } catch (UserNotFoundException ex) {
+            return "redirect:/";
+        }
+    }
+
+    @InitBinder
+    public void initBinder(WebDataBinder dataBinder) {
+        StringTrimmerEditor stringTrimmerEditor = new StringTrimmerEditor(true);
+        dataBinder.registerCustomEditor(String.class, stringTrimmerEditor);
     }
 }

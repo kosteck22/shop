@@ -132,7 +132,7 @@ public class UserRepositoryTests {
         String email = "abc@gmail.com";
 
         //when
-        User user = userRepository.getUserByEmail(email);
+        User user = userRepository.findByEmail(email).get();
 
         //then
         assertThat(user).isNull();
@@ -144,7 +144,7 @@ public class UserRepositoryTests {
         String email = "kamil.ostafil@gmail.com";
 
         //when
-        User user = userRepository.getUserByEmail(email);
+        User user = userRepository.findByEmail(email).get();
 
         //then
         assertThat(user).isNotNull();
