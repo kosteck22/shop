@@ -6,5 +6,5 @@ import pl.zielona_baza.common.entity.setting.SettingCategory;
 
 import java.util.List;
 public interface SettingRepository extends JpaRepository<Setting, String> {
-    public List<Setting> findByCategory(SettingCategory category);
+    List<Setting> findByCategory(SettingCategory category);
 }

@@ -20,9 +20,12 @@ import java.util.Set;
 
 @Service
 public class OrderService {
-
     public static final int ORDERS_PER_PAGE = 5;
-    @Autowired private OrderRepository orderRepository;
+    private final OrderRepository orderRepository;
+
+    public OrderService(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
 
     public Order createOrder(Customer customer, Address address, List<CartItem> cartItems, PaymentMethod paymentMethod,
                              CheckoutInfo checkoutInfo) {
@@ -58,8 +61,8 @@ public class OrderService {
                     .order(order)
                     .product(product)
                     .quantity(i.getQuantity())
-                    .unitPrice(product.getDiscountPrice())
-                    .productCost(product.getCost() * i.getQuantity())
+                    .unitPrice(product.getDiscountPrice().floatValue())
+                    .productCost(product.getCost().floatValue() * i.getQuantity())
                     .subtotal(i.getSubtotal())
                     .shippingCost(i.getShippingCost())
                     .build();

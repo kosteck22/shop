@@ -58,7 +58,7 @@ public class OrderService {
         } else {
             page = orderRepository.findAll(pageable);
         }
-        PagingAndSortingHelper helper = new PagingAndSortingHelper( "listCustomers", sortField, sortDir, keyword, limit);
+        PagingAndSortingHelper helper = new PagingAndSortingHelper( "listOrders", sortField, sortDir, keyword, limit);
 
         helper.updateModelAttributes(pageNumber, page, model);
     }

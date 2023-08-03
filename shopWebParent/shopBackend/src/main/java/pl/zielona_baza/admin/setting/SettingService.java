@@ -10,9 +10,11 @@ import  java.util.List;
 
 @Service
 public class SettingService {
+    private final SettingRepository settingRepository;
 
-    @Autowired
-    private SettingRepository settingRepository;
+    public SettingService(SettingRepository settingRepository) {
+        this.settingRepository = settingRepository;
+    }
 
     public List<Setting> listAllSettings() {
         return settingRepository.findAll();

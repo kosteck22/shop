@@ -1,34 +1,39 @@
 package pl.zielona_baza.admin.order;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 import pl.zielona_baza.admin.paging.PagingAndSortingHelper;
 import pl.zielona_baza.admin.paging.PagingAndSortingParam;
 import pl.zielona_baza.admin.product.ProductService;
 
 @Controller
+@RequestMapping("/orders/search_product")
 public class ProductSearchController {
+    private final ProductService productService;
 
-    @Autowired
-    private ProductService productService;
+    public ProductSearchController(ProductService productService) {
+        this.productService = productService;
+    }
 
-    @GetMapping("/orders/search_product")
+    @GetMapping
     public String showSearchProductPage() {
         return "orders/search_product";
     }
 
-    @PostMapping("/orders/search_product")
+    @PostMapping
     public String searchProducts(String keyword) {
         return "redirect:/orders/search_product/page/1?sortField=name&sortDir=asc&keyword=" + keyword;
     }
 
-    @GetMapping("/orders/search_product/page/{pageNum}")
-    public String searchProductByPage(@PagingAndSortingParam(listName = "listProducts")PagingAndSortingHelper helper,
-                                      @PathVariable(name = "pageNum") int pageNum) {
-        productService.searchProducts(pageNum, helper);
+    @GetMapping("/page/{pageNum}")
+    public String searchProductByPage(@PathVariable(name = "pageNum") int pageNum,
+                                      @RequestParam(value = "sortField", required = false) String sortField,
+                                      @RequestParam(value = "sortDir", required = false) String sortDir,
+                                      @RequestParam(value = "limit", required = false) Integer limit,
+                                      @RequestParam(value = "keyword", required = false) String keyword,
+                                      Model model) {
+        productService.searchProducts(pageNum, sortField, sortDir, limit, keyword, model);
 
         return "orders/search_product";
     }

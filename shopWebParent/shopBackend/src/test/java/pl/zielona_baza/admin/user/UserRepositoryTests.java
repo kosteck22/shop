@@ -11,6 +11,7 @@ import pl.zielona_baza.common.entity.Role;
 import pl.zielona_baza.common.entity.User;
 
 import java.util.HashSet;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -25,6 +26,12 @@ public class UserRepositoryTests {
 
     @Autowired
     private TestEntityManager entityManager;
+
+    @Test
+    public void tests() {
+        String s = UUID.randomUUID().toString();
+        System.out.println(s);
+    }
 
     @Test
     @Order(1)

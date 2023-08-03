@@ -4,6 +4,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import pl.zielona_baza.common.entity.Currency;
 import java.util.List;
 public interface CurrencyRepository extends JpaRepository<Currency, Integer> {
-
-    public List<Currency> findAllByOrderByNameAsc();
+    List<Currency> findAllByOrderByNameAsc();
 }

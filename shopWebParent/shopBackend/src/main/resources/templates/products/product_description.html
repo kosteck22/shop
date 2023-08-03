@@ -5,10 +5,12 @@
     <div class="m-2">
       <label>Short Description:</label>
       <textarea class="form-control" th:field="*{shortDescription}" rows="5" required></textarea>
+      <div class="alert alert-warning" th:if="${#fields.hasErrors('shortDescription')}" th:errors="*{shortDescription}"></div>
     </div>
     <div class="m-2">
       <label>Full Description:</label>
       <textarea class="form-control" th:field="*{fullDescription}" rows="10" required></textarea>
+      <div class="alert alert-warning" th:if="${#fields.hasErrors('fullDescription')}" th:errors="*{fullDescription}"></div>
     </div>
   </div>
 </body>

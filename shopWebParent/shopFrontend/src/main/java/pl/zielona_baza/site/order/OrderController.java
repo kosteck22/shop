@@ -9,6 +9,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import pl.zielona_baza.common.entity.Customer;
 import pl.zielona_baza.common.entity.order.Order;
@@ -23,23 +24,24 @@ import pl.zielona_baza.site.review.ReviewService;
 import javax.servlet.http.HttpServletRequest;
 
 @Controller
+@RequestMapping("/orders")
 public class OrderController {
+    private final OrderService orderService;
+    private final ControllerHelper controllerHelper;
+    private final ReviewService reviewService;
 
-    @Autowired
-    private OrderService orderService;
+    public OrderController(OrderService orderService, ControllerHelper controllerHelper, ReviewService reviewService) {
+        this.orderService = orderService;
+        this.controllerHelper = controllerHelper;
+        this.reviewService = reviewService;
+    }
 
-    @Autowired
-    private ControllerHelper controllerHelper;
-
-    @Autowired
-    private ReviewService reviewService;
-
-    @GetMapping("/orders")
+    @GetMapping
     public String listFirstPage(Model model, HttpServletRequest request) {
         return listOrdersByPage(model, request, 1, "orderTime", "desc", null);
     }
 
-    @GetMapping("/orders/page/{pageNum}")
+    @GetMapping("/page/{pageNum}")
     public String listOrdersByPage(
                                    Model model,
                                    HttpServletRequest request,
@@ -76,7 +78,7 @@ public class OrderController {
         return "orders/orders_customer";
     }
 
-    @GetMapping("/orders/detail/{id}")
+    @GetMapping("/detail/{id}")
     public String viewOrderDetails(
                                     Model model,
                                     @PathVariable(name = "id") Integer id,

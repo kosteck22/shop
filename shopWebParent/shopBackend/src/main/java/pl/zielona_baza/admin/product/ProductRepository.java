@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import pl.zielona_baza.common.entity.product.Product;
 
+import java.util.Optional;
+
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Integer> {
     @Query("SELECT p FROM Product p WHERE CONCAT(p.name, ' ', p.shortDescription, ' ', p.fullDescription, ' '," +
@@ -16,21 +18,23 @@ public interface ProductRepository extends JpaRepository<Product, Integer> {
 
     @Query("SELECT p FROM Product p WHERE p.category.id = ?1 " +
             "OR p.category.allParentIds LIKE %?2%")
-    public Page<Product> findAllInCategory(Integer categoryId, String categoryIdMatch, Pageable pageable);
+    Page<Product> findAllInCategory(Integer categoryId, String categoryIdMatch, Pageable pageable);
 
     @Query("SELECT p FROM Product p WHERE (p.category.id = ?1 " +
             "OR p.category.allParentIds LIKE %?2%) AND " +
             "(CONCAT(p.name, ' ', p.shortDescription, ' ', p.fullDescription, ' '," +
             " p.brand.name, ' ', p.category.name) LIKE %?3%)")
-    public Page<Product> searchInCategory(Integer categoryId, String categoryIdMatch, String keyword, Pageable pageable);
+    Page<Product> searchInCategory(Integer categoryId, String categoryIdMatch, String keyword, Pageable pageable);
 
     Product findByName(String name);
+    Product findByAlias(String alias);
+
     @Query("UPDATE Product p SET p.enabled = ?2 WHERE p.id = ?1")
     @Modifying(flushAutomatically = true, clearAutomatically = true)
     void updateEnabledStatus(Integer id, boolean enabled);
 
     @Query("SELECT p FROM Product p WHERE p.name LIKE %?1%")
-    public Page<Product> searchProductsByName(String keyword, Pageable pageable);
+    Page<Product> searchProductsByName(String keyword, Pageable pageable);
 
     @Query("UPDATE Product p SET " +
             "p.averageRating = COALESCE((SELECT AVG(r.rating) FROM Review r WHERE r.product.id = ?1), 0), " +

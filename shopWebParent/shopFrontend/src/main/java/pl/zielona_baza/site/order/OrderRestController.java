@@ -17,12 +17,13 @@ import javax.servlet.http.HttpServletRequest;
 
 @RestController
 public class OrderRestController {
+    private final OrderService orderService;
+    private final ControllerHelper controllerHelper;
 
-    @Autowired
-    private OrderService orderService;
-
-    @Autowired
-    private ControllerHelper controllerHelper;
+    public OrderRestController(OrderService orderService, ControllerHelper controllerHelper) {
+        this.orderService = orderService;
+        this.controllerHelper = controllerHelper;
+    }
 
     @PostMapping("/orders/return")
     public ResponseEntity<?> handleOrderReturnRequest(@RequestBody OrderReturnRequest requestDTO, HttpServletRequest request) {

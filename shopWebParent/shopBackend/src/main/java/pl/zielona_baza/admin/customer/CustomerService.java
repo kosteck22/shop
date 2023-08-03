@@ -38,7 +38,7 @@ public class CustomerService {
     public void listByPage(Integer pageNumber, String sortField, String sortDir, Integer limit, String keyword, Model model) {
         pageNumber = validatePage(pageNumber);
         limit = validateLimit(limit, CUSTOMERS_PER_PAGE);
-        sortField = validateSortField(sortField, SORTABLE_FIELDS_AVAILABLE, "email");
+        sortField = validateSortField(sortField, SORTABLE_FIELDS_AVAILABLE, "id");
         sortDir = validateSortDir(sortDir);
 
         PagingAndSortingHelper helper = new PagingAndSortingHelper( "listCustomers", sortField, sortDir, keyword, limit);

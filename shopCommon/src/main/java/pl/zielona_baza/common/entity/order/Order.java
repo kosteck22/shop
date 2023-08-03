@@ -9,6 +9,7 @@ import pl.zielona_baza.common.entity.Address;
 import pl.zielona_baza.common.entity.Customer;
 
 import javax.persistence.*;
+import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -54,7 +55,7 @@ public class Order {
     private Date orderTime;
 
     private float shippingCost;
-    private float productCost;
+    private BigDecimal productCost;
     private float subtotal;
     private float tax;
     private float total;
@@ -79,7 +80,7 @@ public class Order {
     @OrderBy("updatedTime ASC")
     private List<OrderTrack> orderTracks = new ArrayList<>();
 
-    public Order(Integer id, Date orderTime, float productCost, float subtotal, float total) {
+    public Order(Integer id, Date orderTime, BigDecimal productCost, float subtotal, float total) {
         this.id = id;
         this.orderTime = orderTime;
         this.productCost = productCost;

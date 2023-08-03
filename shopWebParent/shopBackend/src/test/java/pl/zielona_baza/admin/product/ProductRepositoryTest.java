@@ -12,6 +12,7 @@ import pl.zielona_baza.common.entity.Brand;
 import pl.zielona_baza.common.entity.Category;
 import pl.zielona_baza.common.entity.product.Product;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -42,8 +43,8 @@ public class ProductRepositoryTest {
                 .mainImage("main.png")
                 .brand(brand)
                 .category(category)
-                .cost(400)
-                .price(456)
+                .cost(BigDecimal.valueOf(400))
+                .price(BigDecimal.valueOf(456))
                 .enabled(true)
                 .inStock(true)
                 .createdTime(new Date())

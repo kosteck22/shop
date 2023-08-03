@@ -3,19 +3,24 @@ package pl.zielona_baza.admin.report;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.text.ParseException;
 import java.util.List;
 
 @RestController
+@RequestMapping("/reports")
 public class ReportRestController {
+    private final MasterOrderReportService masterOrderReportService;
+    private final OrderDetailReportService orderDetailReportService;
 
-    @Autowired private MasterOrderReportService masterOrderReportService;
+    public ReportRestController(MasterOrderReportService masterOrderReportService, OrderDetailReportService orderDetailReportService) {
+        this.masterOrderReportService = masterOrderReportService;
+        this.orderDetailReportService = orderDetailReportService;
+    }
 
-    @Autowired private OrderDetailReportService orderDetailReportService;
-
-    @GetMapping("/reports/sales_by_date/{period}")
+    @GetMapping("/sales_by_date/{period}")
     public List<ReportItem> getReportDataByDatePeriod(
             @PathVariable(name = "period") String period
     ) {
@@ -27,7 +32,7 @@ public class ReportRestController {
         };
     }
 
-    @GetMapping("/reports/sales_by_date/{startDate}/{endDate}")
+    @GetMapping("/sales_by_date/{startDate}/{endDate}")
     public List<ReportItem> getReportDataByDatePeriod(
             @PathVariable(name = "startDate") String startDate,
             @PathVariable(name = "endDate") String endDate
@@ -35,7 +40,7 @@ public class ReportRestController {
         return masterOrderReportService.getReportDataByDateRange(startDate, endDate, ReportType.DAY);
     }
 
-    @GetMapping("/reports/{groupBy}/{startDate}/{endDate}")
+    @GetMapping("/{groupBy}/{startDate}/{endDate}")
     public List<ReportItem> getReportDataByCategoryOrProductDatePeriod(
             @PathVariable(name = "groupBy") String groupBy,
             @PathVariable(name = "startDate") String startDate,
@@ -45,7 +50,7 @@ public class ReportRestController {
         return orderDetailReportService.getReportDataByDateRange(startDate, endDate, reportType);
     }
 
-    @GetMapping("/reports/{groupBy}/{period}")
+    @GetMapping("/{groupBy}/{period}")
     public List<ReportItem> getReportDataByCategoryOrProduct(
             @PathVariable(name = "groupBy") String groupBy,
             @PathVariable(name = "period") String period

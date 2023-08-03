@@ -81,7 +81,7 @@ public class PagingAndSortingHelper {
         }
     }
 
-    private Pageable createPageable(int pageNum) {
+    public Pageable createPageable(int pageNum) {
         Sort sort = Sort.by(sortField);
         sort = sortDir.equals("desc") ? sort.descending() : sort.ascending();
 

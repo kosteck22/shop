@@ -47,7 +47,7 @@ public class ShoppingCartService {
         cartItemRepository.updateQuantity(quantity, customer.getId(), productId);
         Product product = productRepository.findById(productId).get();
 
-        return product.getDiscountPrice() * quantity;
+        return product.getDiscountPrice().floatValue() * quantity;
     }
 
     public List<CartItem> listCartItems(Customer customer) {

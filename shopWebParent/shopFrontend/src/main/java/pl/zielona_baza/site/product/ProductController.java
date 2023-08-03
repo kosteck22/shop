@@ -1,6 +1,5 @@
 package pl.zielona_baza.site.product;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -14,10 +13,7 @@ import pl.zielona_baza.common.entity.product.Product;
 import pl.zielona_baza.common.exception.CategoryNotFoundException;
 import pl.zielona_baza.common.exception.ProductNotFoundException;
 import pl.zielona_baza.site.ControllerHelper;
-import pl.zielona_baza.site.Utility;
 import pl.zielona_baza.site.category.CategoryService;
-import pl.zielona_baza.site.customer.CustomerNotFoundException;
-import pl.zielona_baza.site.customer.CustomerService;
 import pl.zielona_baza.site.review.ReviewService;
 import pl.zielona_baza.site.review.vote.ReviewVoteService;
 
@@ -27,15 +23,23 @@ import java.util.Optional;
 
 @Controller
 public class ProductController {
+    private final CategoryService categoryService;
+    private final ProductService productService;
+    private final ReviewService reviewService;
+    private final ReviewVoteService reviewVoteService;
+    private final ControllerHelper controllerHelper;
 
-    @Autowired private CategoryService categoryService;
-    @Autowired private ProductService productService;
-
-    @Autowired private ReviewService reviewService;
-
-    @Autowired private ReviewVoteService reviewVoteService;
-
-    @Autowired private ControllerHelper controllerHelper;
+    public ProductController(CategoryService categoryService,
+                             ProductService productService,
+                             ReviewService reviewService,
+                             ReviewVoteService reviewVoteService,
+                             ControllerHelper controllerHelper) {
+        this.categoryService = categoryService;
+        this.productService = productService;
+        this.reviewService = reviewService;
+        this.reviewVoteService = reviewVoteService;
+        this.controllerHelper = controllerHelper;
+    }
 
     @GetMapping("/c/{category_alias}")
     public String viewCategoryFirstPage(@PathVariable(name = "category_alias") String alias,

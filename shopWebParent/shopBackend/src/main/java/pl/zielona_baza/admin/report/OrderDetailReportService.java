@@ -12,8 +12,11 @@ import java.util.Optional;
 
 @Service
 public class OrderDetailReportService extends AbstractReportService {
+    private final OrderDetailRepository orderDetailRepository;
 
-    @Autowired private OrderDetailRepository orderDetailRepository;
+    public OrderDetailReportService(OrderDetailRepository orderDetailRepository) {
+        this.orderDetailRepository = orderDetailRepository;
+    }
 
     @Override
     protected List<ReportItem> getReportDataByDateRangeInternal(Date startDate, Date endDate, ReportType reportType) {

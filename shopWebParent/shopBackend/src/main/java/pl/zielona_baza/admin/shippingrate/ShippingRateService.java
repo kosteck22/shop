@@ -3,6 +3,7 @@ package pl.zielona_baza.admin.shippingrate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
 import pl.zielona_baza.admin.paging.PagingAndSortingHelper;
 import pl.zielona_baza.admin.product.ProductRepository;
 import pl.zielona_baza.admin.setting.country.CountryRepository;
@@ -11,8 +12,12 @@ import pl.zielona_baza.common.entity.ShippingRate;
 import pl.zielona_baza.common.entity.product.Product;
 import pl.zielona_baza.common.exception.ProductNotFoundException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static pl.zielona_baza.admin.paging.PagingAndSortingValidator.*;
+import static pl.zielona_baza.admin.paging.PagingAndSortingValidator.validateSortDir;
 
 @Service
 @Transactional
@@ -20,17 +25,30 @@ public class ShippingRateService {
     public static final int RATES_PER_PAGE = 10;
     public static final int DIM_DIVISOR = 139;
 
-    @Autowired
-    private ShippingRateRepository shippingRateRepository;
+    private static final List<String> SORTABLE_FIELDS_AVAILABLE = new ArrayList<>(
+            List.of("id", "country", "state", "rate", "days", "codSupported"));
 
-    @Autowired
-    private CountryRepository countryRepository;
+    private final ShippingRateRepository shippingRateRepository;
 
-    @Autowired
-    private ProductRepository productRepository;
+    private final CountryRepository countryRepository;
 
-    public void listByPage(int pageNum, PagingAndSortingHelper helper) {
-        //helper.listEntities(pageNum, RATES_PER_PAGE, shippingRateRepository);
+    private final ProductRepository productRepository;
+
+    public ShippingRateService(ShippingRateRepository shippingRateRepository, CountryRepository countryRepository, ProductRepository productRepository) {
+        this.shippingRateRepository = shippingRateRepository;
+        this.countryRepository = countryRepository;
+        this.productRepository = productRepository;
+    }
+
+    public void listByPage(Integer pageNumber, String sortField, String sortDir, Integer limit, String keyword, Model model) {
+        pageNumber = validatePage(pageNumber);
+        limit = validateLimit(limit, RATES_PER_PAGE);
+        sortField = validateSortField(sortField, SORTABLE_FIELDS_AVAILABLE, "id");
+        sortDir = validateSortDir(sortDir);
+
+        PagingAndSortingHelper helper = new PagingAndSortingHelper( "shippingRates", sortField, sortDir, keyword, limit);
+
+        helper.listEntities(pageNumber, shippingRateRepository, model);
     }
 
     public List<Country> listAllCountries() {

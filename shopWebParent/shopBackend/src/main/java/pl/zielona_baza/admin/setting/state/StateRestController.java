@@ -10,12 +10,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
+@RequestMapping("/states")
 public class StateRestController {
+    private final StateRepository stateRepository;
 
-    @Autowired
-    private StateRepository stateRepository;
+    public StateRestController(StateRepository stateRepository) {
+        this.stateRepository = stateRepository;
+    }
 
-    @GetMapping("/states/list_by_country/{id}")
+    @GetMapping("/list_by_country/{id}")
     public List<StateDTO> listByCountry(@PathVariable("id") Integer countryId) {
         List<State> listStates = stateRepository.findByCountryOrderByNameAsc(
                 Country.builder()
@@ -30,13 +33,13 @@ public class StateRestController {
         return result;
     }
 
-    @PostMapping("/states/save")
+    @PostMapping("/save")
     public String save(@RequestBody State state) {
         State savedState = stateRepository.save(state);
         return String.valueOf(savedState.getId());
     }
 
-    @DeleteMapping("/states/delete/{id}")
+    @DeleteMapping("/delete/{id}")
     public void delete(@PathVariable("id") Integer id) {
         stateRepository.deleteById(id);
     }

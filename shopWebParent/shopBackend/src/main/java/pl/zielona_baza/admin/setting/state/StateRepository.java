@@ -6,5 +6,5 @@ import pl.zielona_baza.common.entity.State;
 import java.util.List;
 
 public interface StateRepository extends JpaRepository<State, Integer> {
-    public List<State> findByCountryOrderByNameAsc(Country country);
+    List<State> findByCountryOrderByNameAsc(Country country);
 }

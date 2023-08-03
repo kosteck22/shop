@@ -14,7 +14,6 @@ import pl.zielona_baza.admin.user.UserRepository;
 @Configuration
 @EnableWebSecurity
 public class WebSecurityConfig {
-
     private final UserRepository userRepository;
 
     public WebSecurityConfig(UserRepository userRepository) {

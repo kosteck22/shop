@@ -17,12 +17,9 @@ import java.util.Optional;
 @Service
 @Transactional
 public class CustomerService {
-
-    private CustomerRepository customerRepository;
-
-    private CountryRepository countryRepository;
-
-    private PasswordEncoder passwordEncoder;
+    private final CustomerRepository customerRepository;
+    private final CountryRepository countryRepository;
+    private final PasswordEncoder passwordEncoder;
 
     public CustomerService(CustomerRepository customerRepository, CountryRepository countryRepository, PasswordEncoder passwordEncoder) {
         this.customerRepository = customerRepository;

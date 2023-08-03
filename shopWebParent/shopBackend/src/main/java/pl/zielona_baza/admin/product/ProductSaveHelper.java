@@ -7,16 +7,15 @@ import org.springframework.web.multipart.MultipartFile;
 import pl.zielona_baza.admin.AmazonS3Util;
 import pl.zielona_baza.admin.FileUploadUtil;
 import pl.zielona_baza.common.entity.product.Product;
+import pl.zielona_baza.common.entity.product.ProductDetail;
 import pl.zielona_baza.common.entity.product.ProductImage;
 
+import javax.imageio.ImageIO;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 public class ProductSaveHelper {
 
@@ -35,43 +34,120 @@ public class ProductSaveHelper {
         }
     }
 
-    static void setExistingExtraImageNames(String[] imageIds, String[] imageNames, Product product) {
-        if (imageIds == null || imageIds.length == 0) return;
-
-        Set<ProductImage> images = new HashSet<>();
-        Arrays.stream(imageIds).forEach(image -> {
-
-        });
-        for (int i = 0; i < imageIds.length; i++) {
-            Integer id = Integer.parseInt(imageIds[i]);
-            String name = imageNames[i];
-            if (!name.isEmpty()) images.add(ProductImage.builder()
-                    .id(id)
-                    .name(name)
-                    .product(product).build());
+    static void setMainImageName(MultipartFile mainImageMultipart, Product product) {
+        if (!mainImageMultipart.isEmpty()) {
+            String fileName = product.getShortName() + UUID.randomUUID();
+            product.setMainImage(fileName);
         }
-        product.setImages(images);
     }
 
-    static void setProductDetails(String[] detailIds,String[] detailNames, String[] detailValues, Product product) {
+    static void setExistingExtraImageNames(String[] imageIds, String[] imageNames, Product product) {
+        if (imageIds == null || imageIds.length == 0) return;
+        if (imageIds.length != imageNames.length) throw new IndexOutOfBoundsException("Size of the imageIds array and imageNames array must be the same");
+
+        Iterator<ProductImage> iterator = product.getImages().iterator();
+
+        while(iterator.hasNext()) {
+            ProductImage productImage = iterator.next();
+            boolean stillExistImage = false;
+
+            for(int i = 0; i < imageIds.length; i++) {
+                if (stillExistImage) break;
+
+                Integer id = Integer.parseInt(imageIds[i]);
+                String name = StringUtils.cleanPath(imageNames[i]);
+
+                if (!name.isEmpty()) {
+                    if (productImage.getId().equals(id) && productImage.getName().equals(name)) {
+                        stillExistImage = true;
+                    }
+                }
+            }
+
+            if (!stillExistImage) {
+                iterator.remove();
+            }
+        }
+    }
+
+    static List<String> setNewExtraImageNames(MultipartFile[] extraImageMultiparts, Product product) {
+        List<String> imgNames = new ArrayList<>();
+
+        if (extraImageMultiparts.length > 0) {
+            for (MultipartFile multipartFile : extraImageMultiparts) {
+                if(!multipartFile.isEmpty() && isImage(multipartFile)) {
+                    String fileName = UUID.randomUUID().toString();
+                    product.addExtraImage(fileName);
+                    imgNames.add(fileName);
+                }
+            }
+        }
+        return imgNames;
+    }
+
+    static void setProductDetails(String[] detailIds, String[] detailNames, String[] detailValues, Product product) {
         if (detailNames == null || detailNames.length == 0) return;
+        if (detailNames.length != detailValues.length || detailNames.length != detailIds.length) throw new IndexOutOfBoundsException("Size of the imageIds array and imageNames array must be the same");
 
         for (int i = 0; i < detailNames.length; i++) {
             String name = detailNames[i];
             String value = detailValues[i];
-            Integer id = Integer.parseInt(detailIds[i]);
+            int id = Integer.parseInt(detailIds[i]);
 
-            if (id != 0) {
+            if (id != 0 && !name.isEmpty() && !value.isEmpty()) {
                 product.addDetail(id, name, value);
+
             } else if (!name.isEmpty() && !value.isEmpty()) {
+                product.addDetail( name, value);
+            }
+        }
+    }
+
+    static void updateProductDetails(String[] detailIds, String[] detailNames, String[] detailValues, Product product) {
+        if (detailNames == null || detailNames.length == 0) return;
+        if (detailNames.length != detailValues.length || detailNames.length != detailIds.length) throw new IndexOutOfBoundsException("Size of the imageIds array and imageNames array must be the same");
+
+        Iterator<ProductDetail> iterator = product.getDetails().iterator();
+
+        while (iterator.hasNext()) {
+            ProductDetail productDetail = iterator.next();
+            boolean stillExistDetail = false;
+
+            for (int i = 0; i < detailNames.length; i++) {
+                if (stillExistDetail) break;
+
+                Integer id = Integer.parseInt(detailIds[i]);
+                String name = StringUtils.cleanPath(detailNames[i]);
+                String value = StringUtils.cleanPath(detailValues[i]);
+
+                if (!name.isEmpty() && !value.isEmpty() && id > 0) {
+                    if (productDetail.getId().equals(id)) {
+                        productDetail.setName(name);
+                        productDetail.setValue(value);
+                        stillExistDetail = true;
+                    }
+                }
+            }
+
+            if (!stillExistDetail) {
+                iterator.remove();
+            }
+        }
+
+        for (int i = 0; i < detailNames.length; i++) {
+            Integer id = Integer.parseInt(detailIds[i]);
+            String name = StringUtils.cleanPath(detailNames[i]);
+            String value = StringUtils.cleanPath(detailValues[i]);
+
+            if (id == 0 && !name.isEmpty() && !value.isEmpty()) {
                 product.addDetail(name, value);
             }
         }
     }
 
-    static void saveUploadedImage(MultipartFile mainImageMultipart, MultipartFile[] extraImageMultiparts, Product savedProduct) throws IOException {
+    static void saveUploadedImage(MultipartFile mainImageMultipart, MultipartFile[] extraImageMultiparts, Product savedProduct, List<String> newExtraImgNames) throws IOException {
         if (!mainImageMultipart.isEmpty()) {
-            String fileName = StringUtils.cleanPath(mainImageMultipart.getOriginalFilename());
+            String fileName = savedProduct.getMainImage();
             String uploadDir = "product-images/" + savedProduct.getId();
 
             List<String> listObjectKeys = AmazonS3Util.listFolder(uploadDir + "/");
@@ -89,35 +165,26 @@ public class ProductSaveHelper {
 
         if (extraImageMultiparts.length > 0) {
             String uploadDir = "product-images/" + savedProduct.getId() + "/extras";
+            int j = 0;
 
-            for (MultipartFile multipartFile : extraImageMultiparts) {
-                if(multipartFile.isEmpty()) continue;
+            for (MultipartFile extraImageMultipart : extraImageMultiparts) {
+                if (extraImageMultipart.isEmpty() || !isImage(extraImageMultipart)) continue;
 
-                String fileName = StringUtils.cleanPath(multipartFile.getOriginalFilename());
+                String fileName = newExtraImgNames.get(j);
+                j++;
 
-                AmazonS3Util.uploadFile(uploadDir, fileName, multipartFile.getInputStream());
+                AmazonS3Util.uploadFile(uploadDir, fileName, extraImageMultipart.getInputStream());
                 //FileUploadUtil.saveFile(uploadDir, fileName, multipartFile);
             }
         }
     }
 
-    static void setNewExtraImageNames(MultipartFile[] extraImageMultiparts, Product product) {
-        if (extraImageMultiparts.length > 0) {
-            for (MultipartFile multipartFile : extraImageMultiparts) {
-                if(!multipartFile.isEmpty()) {
-                    String fileName = StringUtils.cleanPath(multipartFile.getOriginalFilename());
-                    if (!product.containsImageName(fileName)) {
-                        product.addExtraImage(fileName);
-                    }
-                }
-            }
-        }
-    }
-
-    static void setMainImageName(MultipartFile mainImageMultipart, Product product) {
-        if (!mainImageMultipart.isEmpty()) {
-            String fileName = StringUtils.cleanPath(mainImageMultipart.getOriginalFilename());
-            product.setMainImage(fileName);
+    public static boolean isImage(MultipartFile file)
+    {
+        try {
+            return ImageIO.read(file.getInputStream()) != null;
+        } catch (Exception e) {
+            return false;
         }
     }
 }

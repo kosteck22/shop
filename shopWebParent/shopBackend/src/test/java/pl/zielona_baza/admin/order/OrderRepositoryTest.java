@@ -49,8 +49,8 @@ class OrderRepositoryTest {
         mainOrder.setShippingCost(10);
         mainOrder.setProductCost(product.getCost());
         mainOrder.setTax(0);
-        mainOrder.setSubtotal(product.getPrice());
-        mainOrder.setTotal(product.getPrice() + 10);
+        mainOrder.setSubtotal(product.getPrice().floatValue());
+        mainOrder.setTotal(product.getPrice().floatValue() + 10);
         mainOrder.setPaymentMethod(PaymentMethod.CREDIT_CARD);
         mainOrder.setStatus(OrderStatus.NEW);
         mainOrder.setDeliverDate(new Date());
@@ -59,11 +59,11 @@ class OrderRepositoryTest {
         OrderDetail orderDetail = new OrderDetail();
         orderDetail.setProduct(product);
         orderDetail.setOrder(mainOrder);
-        orderDetail.setProductCost(product.getCost());
+        orderDetail.setProductCost(product.getCost().floatValue());
         orderDetail.setShippingCost(10);
         orderDetail.setQuantity(1);
-        orderDetail.setSubtotal(product.getPrice());
-        orderDetail.setUnitPrice(product.getPrice());
+        orderDetail.setSubtotal(product.getPrice().floatValue());
+        orderDetail.setUnitPrice(product.getPrice().floatValue());
 
         mainOrder.getOrderDetails().add(orderDetail);
 

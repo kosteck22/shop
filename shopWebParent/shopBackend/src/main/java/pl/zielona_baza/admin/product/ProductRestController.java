@@ -8,22 +8,25 @@ import pl.zielona_baza.common.entity.product.Product;
 import pl.zielona_baza.common.exception.ProductNotFoundException;
 
 @RestController
+@RequestMapping("/products")
 public class ProductRestController {
+    private final ProductService productService;
 
-    @Autowired
-    private ProductService productService;
+    public ProductRestController(ProductService productService) {
+        this.productService = productService;
+    }
 
-    @PostMapping("/products/check_unique")
+    @PostMapping("/check_unique")
     public ResponseEntity<String> checkUnique(@RequestParam("id") Integer id, @RequestParam("name") String name) {
         String result = productService.checkUnique(id, name);
 
         return ResponseEntity.ok().body(result);
     }
 
-    @GetMapping("/products/get/{id}")
+    @GetMapping("/get/{id}")
     public ProductDTO getProductInfo(@PathVariable("id") Integer id) throws ProductNotFoundException {
         Product product = productService.get(id);
 
-        return new ProductDTO(product.getName(), product.getMainImagePath(), product.getDiscountPrice(), product.getCost());
+        return new ProductDTO(product.getName(), product.getMainImagePath(), product.getDiscountPrice().floatValue(), product.getCost().floatValue());
     }
 }

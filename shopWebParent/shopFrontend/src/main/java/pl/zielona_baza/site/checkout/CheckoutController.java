@@ -41,22 +41,32 @@ import javax.swing.text.html.Option;
 
 @Controller
 public class CheckoutController {
+    private final CheckoutService checkoutService;
+    private final ControllerHelper controllerHelper;
+    private final AddressService addressService;
+    private final ShippingRateService shippingRateService;
+    private final ShoppingCartService shoppingCartService;
+    private final OrderService orderService;
+    private final SettingService settingService;
+    private final PayPalService payPalService;
 
-    @Autowired private CheckoutService checkoutService;
-
-    @Autowired private ControllerHelper controllerHelper;
-
-    @Autowired private AddressService addressService;
-
-    @Autowired private ShippingRateService shippingRateService;
-
-    @Autowired private ShoppingCartService shoppingCartService;
-
-    @Autowired private OrderService orderService;
-
-    @Autowired private SettingService settingService;
-
-    @Autowired private PayPalService payPalService;
+    public CheckoutController(CheckoutService checkoutService,
+                              ControllerHelper controllerHelper,
+                              AddressService addressService,
+                              ShippingRateService shippingRateService,
+                              ShoppingCartService shoppingCartService,
+                              OrderService orderService,
+                              SettingService settingService,
+                              PayPalService payPalService) {
+        this.checkoutService = checkoutService;
+        this.controllerHelper = controllerHelper;
+        this.addressService = addressService;
+        this.shippingRateService = shippingRateService;
+        this.shoppingCartService = shoppingCartService;
+        this.orderService = orderService;
+        this.settingService = settingService;
+        this.payPalService = payPalService;
+    }
 
     @GetMapping("/checkout")
     public String showCheckoutPage(Model model, HttpServletRequest request) {

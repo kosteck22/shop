@@ -10,8 +10,11 @@ import javax.servlet.http.HttpServletRequest;
 
 @Controller
 public class ReportController {
+    private final SettingService settingService;
 
-    @Autowired private SettingService settingService;
+    public ReportController(SettingService settingService) {
+        this.settingService = settingService;
+    }
 
     @GetMapping("/reports")
     public String viewSalesReportHome(HttpServletRequest request) {

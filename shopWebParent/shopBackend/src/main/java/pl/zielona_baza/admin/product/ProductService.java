@@ -1,67 +1,138 @@
 package pl.zielona_baza.admin.product;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
+import org.springframework.web.multipart.MultipartFile;
+import pl.zielona_baza.admin.AmazonS3Util;
+import pl.zielona_baza.admin.brand.BrandRepository;
+import pl.zielona_baza.admin.category.CategoryRepository;
+import pl.zielona_baza.admin.exception.ValidationException;
 import pl.zielona_baza.admin.paging.PagingAndSortingHelper;
+import pl.zielona_baza.common.entity.Brand;
+import pl.zielona_baza.common.entity.Category;
 import pl.zielona_baza.common.entity.product.Product;
 import pl.zielona_baza.common.exception.ProductNotFoundException;
 
-import java.util.Date;
-import java.util.List;
-import java.util.NoSuchElementException;
+import javax.imageio.ImageIO;
+import java.io.IOException;
+import java.util.*;
+
+import static pl.zielona_baza.admin.paging.PagingAndSortingValidator.*;
+import static pl.zielona_baza.admin.paging.PagingAndSortingValidator.validateSortDir;
 
 @Service
 @Transactional
 public class ProductService {
 
-    public static final int PRODUCTS_PER_PAGE = 20;
-    @Autowired
-    private ProductRepository productRepository;
+    private static final int PRODUCTS_PER_PAGE = 20;
 
-    public List<Product> listALl() {
-        return productRepository.findAll(Sort.by("name").ascending());
+    private static final List<String> SORTABLE_FIELDS_AVAILABLE = new ArrayList<>(
+            List.of("id", "name", "brand", "category", "enabled"));
+    private final ProductRepository productRepository;
+    private final BrandRepository brandRepository;
+    private final CategoryRepository categoryRepository;
+
+    public ProductService(ProductRepository productRepository, BrandRepository brandRepository, CategoryRepository categoryRepository) {
+        this.productRepository = productRepository;
+        this.brandRepository = brandRepository;
+        this.categoryRepository = categoryRepository;
     }
 
-    public void listByPage(Integer pageNum, PagingAndSortingHelper helper, Integer categoryId) {
-        /*Pageable pageable = helper.createPageable(PRODUCTS_PER_PAGE, pageNum);
-        String keyword = helper.getKeyword();
-        Page<Product> page = null;
+    public void listByPage(Integer pageNumber,
+                           String sortField,
+                           String sortDir,
+                           Integer limit,
+                           String keyword,
+                           Model model,
+                           Integer categoryId) {
+        //validation
+        pageNumber = validatePage(pageNumber);
+        limit = validateLimit(limit, PRODUCTS_PER_PAGE);
+        sortField = validateSortField(sortField, SORTABLE_FIELDS_AVAILABLE, "id");
+        sortDir = validateSortDir(sortDir);
 
-        if (keyword != null && !keyword.isEmpty()) {
-            if (categoryId != null && categoryId > 0) {
-                String categoryIdMatch = "-" + String.valueOf(categoryId) + "-";
+        PagingAndSortingHelper helper = new PagingAndSortingHelper( "listProducts", sortField, sortDir, keyword, limit);
+
+        Pageable pageable = helper.createPageable(pageNumber);
+        Page<Product> page;
+
+        //searching products only in one category
+        if (categoryId != null && categoryId > 0) {
+            String categoryIdMatch = "-" + categoryId + "-";
+
+            if (keyword != null && !keyword.isEmpty()) {
                 page = productRepository.searchInCategory(categoryId, categoryIdMatch, keyword, pageable);
             } else {
-                page = productRepository.findAll(keyword, pageable);
-            }
-        } else {
-            if (categoryId != null && categoryId > 0) {
-                String categoryIdMatch = "-" + String.valueOf(categoryId) + "-";
                 page = productRepository.findAllInCategory(categoryId, categoryIdMatch, pageable);
+            }
+        }
+        //searching products in all categories
+        else {
+            if (keyword != null && !keyword.isEmpty()) {
+                page = productRepository.findAll(keyword, pageable);
             } else {
                 page = productRepository.findAll(pageable);
             }
         }
-        helper.updateModelAttributes(pageNum, page);*/
+
+        helper.updateModelAttributes(pageNumber, page, model);
+
+        if (categoryId != null) model.addAttribute("categoryId", categoryId);
     }
 
-    public void searchProducts(int pageNum, PagingAndSortingHelper helper) {
-        /*Pageable pageable = helper.createPageable(PRODUCTS_PER_PAGE, pageNum);
-        String keyword = helper.getKeyword();
+    public void searchProducts(Integer pageNumber,
+                               String sortField,
+                               String sortDir,
+                               Integer limit,
+                               String keyword,
+                               Model model) {
+        pageNumber = validatePage(pageNumber);
+        limit = validateLimit(limit, PRODUCTS_PER_PAGE);
+        sortField = validateSortField(sortField, SORTABLE_FIELDS_AVAILABLE, "id");
+        sortDir = validateSortDir(sortDir);
 
+        PagingAndSortingHelper helper = new PagingAndSortingHelper( "listCustomers", sortField, sortDir, keyword, limit);
+
+        Pageable pageable = helper.createPageable(pageNumber);
         Page<Product> page = productRepository.searchProductsByName(keyword, pageable);
 
-        helper.updateModelAttributes(pageNum, page);*/
+        helper.updateModelAttributes(pageNumber, page, model);
     }
 
-    public Product save(Product product) {
-        if (product.getId() == null) {
-            product.setCreatedTime(new Date());
+    public void save(Product product,
+                        MultipartFile mainImageMultipart,
+                        MultipartFile[] extraImageMultiparts,
+                        String[] detailIds,
+                        String[] detailNames,
+                        String[] detailValues,
+                        String[] imageIds,
+                        String[] imageNames) throws IOException, ValidationException, ProductNotFoundException {
+        Integer id = product.getId();
+
+        //validation main image (required for new product)
+        if (id == null || id == 0) {
+            if (mainImageMultipart.isEmpty() || !ProductSaveHelper.isImage(mainImageMultipart)) {
+                throw new ValidationException("Main image cannot be empty");
+            }
         }
+
+        //validation name (check unique)
+        Product productByName = productRepository.findByName(product.getName());
+
+        if (productByName != null) {
+            if ((id == null || id == 0)) {
+                throw new ValidationException("Product name must be unique");
+            }
+            if (!Objects.equals(id, productByName.getId())) {
+                throw new ValidationException("Product name must be unique");
+            }
+        }
+
+        //validation alias (check unique)
+        Product productByAlias = productRepository.findByAlias(product.getAlias());
 
         if(product.getAlias() == null || product.getAlias().isEmpty()) {
             String defaultAlias = product.getName().replaceAll(" ", "-");
@@ -70,16 +141,94 @@ public class ProductService {
             product.setAlias(product.getAlias().replaceAll(" ", "-"));
         }
 
-        product.setUpdatedTime(new Date());
+        if (productByAlias != null) {
+            if (id == null || id == 0) {
+                throw new ValidationException("Product alias must be unique");
+            }
+            if (!Objects.equals(id, productByAlias.getId())) {
+                throw new ValidationException("Product alias must be unique");
+            }
+        }
 
-        Product savedProduct = productRepository.save(product);
+        Product productToSave;
+        if (id == null || id == 0) {
+            productToSave =  new Product();
+        } else {
+            productToSave = productRepository.findById(id)
+                    .orElseThrow(() -> new ProductNotFoundException("Product with given id not found"));
+        }
+
+        //validation brand
+        Brand brand = product.getBrand();
+
+        if (brand == null) {
+            product.setBrand(productToSave.getBrand());
+            throw new ValidationException("Chosen brand does not exist");
+        }
+
+        Brand brandFromDB = brandRepository.findById(brand.getId())
+                .orElseThrow(() -> new ValidationException("Chosen brand does not exist"));
+
+        //validation category
+        Category category = product.getCategory();
+
+        if (category == null) {
+            product.setCategory(productToSave.getCategory());
+            throw new ValidationException("Chosen category does not exist");
+        }
+
+        Category categoryFromDB = categoryRepository.findById(category.getId())
+                .orElseThrow(() -> new ValidationException("Chosen category does not exist"));
+
+        if (!brandFromDB.getCategories().contains(category)) {
+            throw new ValidationException("The chosen category is not part of brand");
+        }
+
+        productToSave.setName(product.getName());
+        productToSave.setAlias(product.getAlias());
+        productToSave.setShortDescription(product.getShortDescription());
+        productToSave.setFullDescription(product.getFullDescription());
+        productToSave.setBrand(brandFromDB);
+        productToSave.setCategory(categoryFromDB);
+
+
+        if (id == null) {
+            productToSave.setCreatedTime(new Date());
+        }
+
+        productToSave.setUpdatedTime(new Date());
+        productToSave.setEnabled(product.isEnabled());
+        productToSave.setInStock(product.isInStock());
+        productToSave.setCost(product.getCost());
+        productToSave.setPrice(product.getPrice());
+        productToSave.setDiscountPercent(product.getDiscountPercent());
+        productToSave.setLength(product.getLength());
+        productToSave.setWidth(product.getWidth());
+        productToSave.setHeight(product.getHeight());
+        productToSave.setWeight(product.getWeight());
+
+        if (ProductSaveHelper.isImage(mainImageMultipart)) {
+            ProductSaveHelper.setMainImageName(mainImageMultipart, productToSave);
+        }
+
+        if (id != null && id > 0) {
+            ProductSaveHelper.setExistingExtraImageNames(imageIds, imageNames, productToSave);
+        }
+
+        List<String> newExtraImgNames = ProductSaveHelper.setNewExtraImageNames(extraImageMultiparts, productToSave);
+        ProductSaveHelper.updateProductDetails(detailIds, detailNames, detailValues, productToSave);
+
+        Product savedProduct = productRepository.save(productToSave);
         productRepository.updateReviewCountAndAverageRating(savedProduct.getId());
 
-        return savedProduct;
+        ProductSaveHelper.saveUploadedImage(mainImageMultipart,extraImageMultiparts, savedProduct, newExtraImgNames);
+        ProductSaveHelper.deleteExtraImagesWereRemovedOnForm(savedProduct);
     }
 
-    public void saveProductPrice(Product product) {
-        Product productInDB = productRepository.findById(product.getId()).get();
+    public void saveProductPrice(Product product) throws ProductNotFoundException {
+        Product productInDB = productRepository.findById(product.getId())
+                .orElseThrow(() -> new ProductNotFoundException("Product with ID %d not found".formatted(product.getId())));
+
         productInDB.setCost(product.getCost());
         productInDB.setPrice(product.getPrice());
         productInDB.setDiscountPercent(product.getDiscountPercent());
@@ -88,11 +237,8 @@ public class ProductService {
     }
 
     public Product get(Integer id) throws ProductNotFoundException {
-        try {
-            return productRepository.findById(id).get();
-        } catch (NoSuchElementException ex) {
-            throw new ProductNotFoundException("Could not find any product with ID " + id);
-        }
+        return productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException("Could not find any product with ID %d".formatted(id)));
     }
 
     public String checkUnique(Integer id, String name) {
@@ -102,27 +248,49 @@ public class ProductService {
         if (isCreatingNew) {
             if (productByName != null) return "Duplicated";
         } else {
-            if (productByName != null && productByName.getId() != id) return "Duplicated";
+            if (productByName != null && !Objects.equals(productByName.getId(), id)) return "Duplicated";
         }
 
         return "OK";
     }
 
     public void updateProductEnabledStatus(Integer id, boolean enabled) throws ProductNotFoundException {
-        try {
-            productRepository.findById(id).orElseThrow(() -> {
-                throw new NoSuchElementException();
-            });
-            productRepository.updateEnabledStatus(id, enabled);
-        } catch (NoSuchElementException e) {
-                throw new ProductNotFoundException("Product with ID " + id + " not found.");
-        }
+        productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException("Could not find any product with ID %d".formatted(id)));
+        productRepository.updateEnabledStatus(id, enabled);
     }
 
     public void delete(Integer id) throws ProductNotFoundException {
-        boolean productExist = productRepository.existsById(id);
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException("Could not find any product with ID %d".formatted(id)));
+        productRepository.delete(product);
 
-        if (!productExist) throw new ProductNotFoundException("Product with ID " + id + " not found.");
-        productRepository.deleteById(id);
+        String productExtraImagesDir = "product-images/" + id + "/extras";
+        AmazonS3Util.removeFolder(productExtraImagesDir);
+
+        String userPhotosDir = "product-images/" + id;
+        AmazonS3Util.removeFolder(userPhotosDir);
+
+    }
+
+    public void restoreProductImagesAndDetails(Product product, String[] detailIds, String[] detailNames, String[] detailValues) throws ProductNotFoundException {
+        restoreProductImages(product);
+        restoreProductDetails(product, detailIds, detailNames, detailValues);
+    }
+
+    private void restoreProductDetails(Product product, String[] detailIds, String[] detailNames, String[] detailValues) {
+        ProductSaveHelper.setProductDetails(detailIds, detailNames, detailValues, product);
+    }
+
+    private void restoreProductImages(Product product) throws ProductNotFoundException {
+        Integer productId = product.getId();
+
+        if (productId != null && productId > 0) {
+            Product productFromDB = productRepository.findById(productId)
+                    .orElseThrow(() -> new ProductNotFoundException("Could not find any product with ID %d".formatted(productId)));
+
+            product.setMainImage(productFromDB.getMainImage());
+            product.setImages(productFromDB.getImages());
+        }
     }
 }

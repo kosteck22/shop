@@ -10,11 +10,13 @@ import pl.zielona_baza.common.exception.ProductNotFoundException;
 
 @Service
 public class ProductService {
-
     public static final int PRODUCTS_PER_PAGE = 20;
     public static final int SEARCH_RESULTS_PER_PAGE = 10;
+    private final ProductRepository productRepository;
 
-    @Autowired private ProductRepository productRepository;
+    public ProductService(ProductRepository productRepository) {
+        this.productRepository = productRepository;
+    }
 
     public Page<Product> listByCategory(int pageNum, Integer categoryId) {
         String categoryIdMatch = "-" + String.valueOf(categoryId) + "-";

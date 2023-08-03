@@ -3,6 +3,8 @@ package pl.zielona_baza.common.entity.product;
 import lombok.*;
 
 import javax.persistence.*;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 @Entity
 @Table(name = "product_details")
@@ -16,9 +18,13 @@ public class ProductDetail {
     private Integer id;
 
     @Column(nullable = false)
+    @NotBlank
+    @Size(min = 3, max = 255)
     private String name;
 
     @Column(nullable = false)
+    @NotBlank
+    @Size(min = 3, max = 255)
     private String value;
 
     @ManyToOne

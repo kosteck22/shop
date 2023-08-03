@@ -10,7 +10,11 @@ import pl.zielona_baza.common.entity.Brand;
 import pl.zielona_baza.common.entity.Category;
 
 import javax.persistence.*;
+import javax.validation.constraints.*;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "products")
@@ -18,39 +22,65 @@ import java.util.*;
 @AllArgsConstructor @NoArgsConstructor
 @Builder
 public class Product {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Column(unique = true, length = 256, nullable = false)
+    @Size(min = 3, max = 256)
+    @NotBlank
     private String name;
+
     @Column(unique = true, length = 256, nullable = false)
+    @Size(min = 3, max = 256)
     private String alias;
+
     @Column(length = 512, nullable = false, name = "short_description")
+    @Size(min = 5, max = 512)
+    @NotBlank
     private String shortDescription;
+
     @Column(length = 4096, nullable = false, name = "full_description")
+    @Size(min = 5, max = 4096)
+    @NotBlank
     private String fullDescription;
 
     @Column(name = "created_time")
     private Date createdTime;
+
     @Column(name = "updated_time")
     private Date updatedTime;
 
     private boolean enabled;
+
     @Column(name = "in_stock")
     private boolean inStock;
 
-    private float cost;
-    @Column(name = "price")
-    private float price;
-    @Column(name = "discount_percent")
-    private float discountPercent;
+    @DecimalMin(value = "0.0", inclusive = false)
+    @Digits(integer = 6, fraction = 2)
+    private BigDecimal cost;
 
-    private float length;
-    private float width;
-    private float height;
-    private float weight;
+    @Column(name = "price")
+    @DecimalMin(value = "0.0", inclusive = false)
+    @Digits(integer = 6, fraction = 2)
+    private BigDecimal price;
+
+    @Column(name = "discount_percent")
+    @DecimalMax(value = "50.0", inclusive = false)
+    @Digits(integer = 2, fraction = 2)
+    private BigDecimal discountPercent;
+
+    @Min(value = 0)
+    private int length;
+
+    @Min(value = 0)
+    private int width;
+
+    @Min(value = 0)
+    private int height;
+
+    @Min(value = 0)
+    private int weight;
 
     @Column(name = "review_count")
     private int reviewCount;
@@ -87,57 +117,82 @@ public class Product {
 
     public Product(String name) { this.name = name; }
 
+    public void setDetails(List<ProductDetail> details) {
+        this.details.clear();
+        this.details.addAll(details);
+    }
+
+    public void setImages(Set<ProductImage> images) {
+        this.images.clear();
+        this.images = images;
+    }
+
     public void addExtraImage(String imageName) {
-        this.images.add(ProductImage.builder()
-                .name(imageName)
-                .product(this)
-                .build());
+        images.add(ProductImage.builder()
+                            .name(imageName)
+                            .product(this)
+                            .build());
     }
 
     public void addDetail(String detailName, String detailValue) {
-        this.details.add(new ProductDetail(detailName, detailValue, this));
+        details.add(ProductDetail.builder()
+                            .name(detailName)
+                            .value(detailValue)
+                            .product(this)
+                            .build());
     }
 
-    public void addDetail(Integer id, String name, String value) {
-        this.details.add(new ProductDetail(id, name, value, this));
+    public void addDetail(Integer detailId, String detailName, String detailValue) {
+        details.add(ProductDetail.builder()
+                        .id(detailId)
+                        .name(detailName)
+                        .value(detailValue)
+                        .product(this)
+                        .build());
+    }
+
+    public void updateDetail(Integer id, String detailName, String detailValue) {
+        Optional<ProductDetail> detailOpt = details.stream().filter(d -> d.getId().equals(id)).findFirst();
+
+        if (detailOpt.isPresent()) {
+            ProductDetail detail = detailOpt.get();
+            detail.setName(detailName);
+            detail.setValue(detailValue);
+        }
     }
 
     @Transient
     public String getMainImagePath() {
-        if (id == null || this.mainImage == null) return "/images/image-thumbnail.png";
+        if (id == null || mainImage == null) return "/images/image-thumbnail.png";
 
-        return Constants.S3_BASE_URI + "/product-images/" + this.id + "/" + this.mainImage;
+        return Constants.S3_BASE_URI + "/product-images/" + id + "/" + mainImage;
     }
 
     public boolean containsImageName(String imageName) {
-        Iterator<ProductImage> iterator = images.iterator();
-
-        while (iterator.hasNext()) {
-            ProductImage image = iterator.next();
-            if (image.getName().equals(imageName)) {
-                return true;
-            }
-        }
-        return false;
+        return images.stream().anyMatch(img -> img.getName().equals(imageName));
     }
 
     @Transient
     public String getShortName() {
-        if (this.name.length() > 70) return this.name.substring(0, 70).concat("...");
+        if (name.length() > 70) return name.substring(0, 70).concat("...");
 
-        return this.name;
+        return name;
     }
 
     @Transient
-    public float getDiscountPrice() {
-        if (discountPercent > 0) {
-            return this.price * ((100 - this.discountPercent) / 100);
+    public BigDecimal getDiscountPrice() {
+        if (discountPercent.doubleValue() > 0) {
+            BigDecimal percent = BigDecimal.valueOf(100)
+                    .subtract(this.discountPercent)
+                    .divide(BigDecimal.valueOf(100), 3, RoundingMode.HALF_EVEN);
+
+            return price.multiply(percent);
         }
-        return this.price;
+        return price;
     }
 
     @Transient
     public String getURI() {
-        return "/c/" + this.category.getAlias() + "/" + this.alias + "/";
+        return "/c/" + category.getAlias() + "/" + alias + "/";
     }
 }

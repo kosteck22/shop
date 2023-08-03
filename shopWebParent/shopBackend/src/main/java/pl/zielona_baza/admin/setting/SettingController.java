@@ -1,16 +1,15 @@
 package pl.zielona_baza.admin.setting;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pl.zielona_baza.admin.AmazonS3Util;
-import pl.zielona_baza.admin.FileUploadUtil;
 import pl.zielona_baza.common.entity.Currency;
 import pl.zielona_baza.common.entity.setting.Setting;
 
@@ -20,15 +19,19 @@ import java.util.List;
 import java.util.Optional;
 
 @Controller
+@RequestMapping("/settings")
 public class SettingController {
-    
-    @Autowired
-    private SettingService settingService;
-    
-    @Autowired
-    private CurrencyRepository currencyRepository;
-    
-    @GetMapping("/settings")
+
+    private final SettingService settingService;
+
+    private final CurrencyRepository currencyRepository;
+
+    public SettingController(SettingService settingService, CurrencyRepository currencyRepository) {
+        this.settingService = settingService;
+        this.currencyRepository = currencyRepository;
+    }
+
+    @GetMapping
     public String listAll(Model model) {
         List<Setting> listSettings = settingService.listAllSettings();
         List<Currency> listCurrencies = currencyRepository.findAllByOrderByNameAsc();
@@ -42,7 +45,7 @@ public class SettingController {
         return "settings/settings";
     }
 
-    @PostMapping("/settings/save_general")
+    @PostMapping("/save_general")
     public String saveGeneralSettings(
             @RequestParam("fileImage")MultipartFile fileImage,
             HttpServletRequest request,
@@ -98,7 +101,7 @@ public class SettingController {
         settingService.saveAll(listSettings);
     }
 
-    @PostMapping("/settings/save_mail_server")
+    @PostMapping("/save_mail_server")
     public String saveMailServerSettings(HttpServletRequest request, RedirectAttributes redirectAttributes) {
         List<Setting> mailServerSettings = settingService.getMailServerSettings();
 
@@ -108,7 +111,7 @@ public class SettingController {
         return "redirect:/settings";
     }
 
-    @PostMapping("/settings/save_mail_templates")
+    @PostMapping("/save_mail_templates")
     public String saveMailTemplateSettings(HttpServletRequest request, RedirectAttributes redirectAttributes) {
         List<Setting> mailTemplateSettings = settingService.getMailTemplateSettings();
 
@@ -118,7 +121,7 @@ public class SettingController {
         return "redirect:/settings";
     }
 
-    @PostMapping("/settings/save_payment")
+    @PostMapping("/save_payment")
     public String savePaymentSettings(HttpServletRequest request, RedirectAttributes redirectAttributes) {
         List<Setting> paymentSettings = settingService.getPaymentSettings();
         updateSettingValuesFromForm(request, paymentSettings);

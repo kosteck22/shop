@@ -12,10 +12,12 @@ import java.util.Arrays;
 
 @Component
 public class PayPalService {
-
     public static final String GET_ORDER_API = "/v2/checkout/orders/";
+    private final SettingService settingService;
 
-    @Autowired private SettingService settingService;
+    public PayPalService(SettingService settingService) {
+        this.settingService = settingService;
+    }
 
     public boolean validateOrder(String orderId) throws PayPalApiException {
         PayPalOrderResponse orderResponse = getOrderDetails(orderId);

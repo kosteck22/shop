@@ -41,8 +41,8 @@ public class OrderController {
     }
 
     @GetMapping
-    public String listFirstPage(Model model, @AuthenticationPrincipal ShopUserDetails loggedUser) {
-        return listByPage(1, "orderTime", "desc", 10, null, model, loggedUser);
+    public String listFirstPage(Model model, @AuthenticationPrincipal ShopUserDetails loggedUser, HttpServletRequest request) {
+        return listByPage(1, "orderTime", "desc", 10, null, model, loggedUser, request);
     }
 
     @GetMapping("/page/{pageNum}")
@@ -52,10 +52,10 @@ public class OrderController {
                              @RequestParam(name = "limit", required = false) Integer limit,
                              @RequestParam(name = "keyword", required = false) String keyword,
                              Model model,
-                             @AuthenticationPrincipal ShopUserDetails loggedUser) {
+                             @AuthenticationPrincipal ShopUserDetails loggedUser,
+                             HttpServletRequest request) {
         orderService.listByPage(pageNum, sortField, sortDir, limit, keyword, model);
-       /* loadCurrencySetting(request);
-*/
+        loadCurrencySetting(request);
         if (loggedUser.hasRole("Shipper") &&
            !loggedUser.hasRole("Admin") &&
            !loggedUser.hasRole("Salesperson")) {

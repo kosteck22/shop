@@ -11,9 +11,11 @@ import java.util.List;
 @Service
 @Transactional
 public class AddressService {
+    private final AddressRepository addressRepository;
 
-    @Autowired
-    private AddressRepository addressRepository;
+    public AddressService(AddressRepository addressRepository) {
+        this.addressRepository = addressRepository;
+    }
 
     public List<Address> listAddressBook(Customer customer) {
         return addressRepository.findByCustomer(customer);

@@ -13,7 +13,6 @@ import java.util.List;
 
 
 public class ShopUserDetails  implements UserDetails {
-
     private final User user;
 
     public ShopUserDetails(User user) {

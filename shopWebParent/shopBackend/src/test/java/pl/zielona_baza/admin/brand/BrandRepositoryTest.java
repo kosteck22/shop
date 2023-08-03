@@ -88,4 +88,9 @@ public class BrandRepositoryTest {
         //then
         assertThat(updatedBrand.getName()).isEqualTo(newName);
     }
+
+    @Test
+    public void test() {
+        
+    }
 }

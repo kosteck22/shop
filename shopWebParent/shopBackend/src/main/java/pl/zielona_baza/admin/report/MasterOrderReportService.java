@@ -12,7 +12,11 @@ import java.util.List;
 
 @Service
 public class MasterOrderReportService extends AbstractReportService{
-    @Autowired private OrderRepository orderRepository;
+    private final OrderRepository orderRepository;
+
+    public MasterOrderReportService(OrderRepository orderRepository) {
+        this.orderRepository = orderRepository;
+    }
 
     @Override
     protected List<ReportItem> getReportDataByDateRangeInternal(Date startTime, Date endTime, ReportType reportType) {
@@ -30,7 +34,7 @@ public class MasterOrderReportService extends AbstractReportService{
                     .filter(order -> reportItem.getIdentifier().equals(dateFormatter.format(order.getOrderTime())))
                     .forEach(order -> {
                         reportItem.addGrossSales(order.getTotal());
-                        reportItem.addNetSales(order.getSubtotal() - order.getProductCost());
+                        reportItem.addNetSales(order.getSubtotal() - order.getProductCost().floatValue());
                         reportItem.increaseOrdersCount();
                     })
         );

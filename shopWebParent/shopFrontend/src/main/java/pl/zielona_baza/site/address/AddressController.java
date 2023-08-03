@@ -3,10 +3,7 @@ package pl.zielona_baza.site.address;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pl.zielona_baza.common.entity.Address;
 import pl.zielona_baza.common.entity.Country;
@@ -20,18 +17,19 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 
 @Controller
+@RequestMapping("/address_book")
 public class AddressController {
+    private final AddressService addressService;
+    private final CustomerService customerService;
+    private final ControllerHelper controllerHelper;
 
-    @Autowired
-    private AddressService addressService;
+    public AddressController(AddressService addressService, CustomerService customerService, ControllerHelper controllerHelper) {
+        this.addressService = addressService;
+        this.customerService = customerService;
+        this.controllerHelper = controllerHelper;
+    }
 
-    @Autowired
-    private CustomerService customerService;
-
-    @Autowired
-    private ControllerHelper controllerHelper;
-
-    @GetMapping("/address_book")
+    @GetMapping
     public String showAddressBook(Model model, HttpServletRequest request,
                                   @RequestParam(name = "redirect", required = false) String redirect) {
         Customer customer = controllerHelper.getAuthenticatedCustomer(request).get();
@@ -54,7 +52,7 @@ public class AddressController {
         return "address_book/addresses";
     }
 
-    @GetMapping("/address_book/new")
+    @GetMapping("/new")
     public String newAddress(Model model) {
         List<Country> listCountries = customerService.listAllCountries();
 
@@ -65,7 +63,7 @@ public class AddressController {
         return "address_book/address_form";
     }
 
-    @PostMapping("/address_book/save")
+    @PostMapping("/save")
     public String saveAddress(Address address,
                               HttpServletRequest request,
                               RedirectAttributes redirectAttributes,
@@ -85,7 +83,7 @@ public class AddressController {
         return redirectURL;
     }
 
-    @GetMapping("/address_book/edit/{id}")
+    @GetMapping("/edit/{id}")
     public String editAddress(@PathVariable("id") Integer addressId,
                               Model model,
                               HttpServletRequest request,
@@ -104,7 +102,7 @@ public class AddressController {
         return "address_book/address_form";
     }
 
-    @GetMapping("/address_book/delete/{id}")
+    @GetMapping("/delete/{id}")
     public String deleteAddress(@PathVariable("id") Integer addressId,
                                 RedirectAttributes redirectAttributes,
                                 HttpServletRequest request) {
@@ -116,7 +114,7 @@ public class AddressController {
         return "redirect:/address_book";
     }
 
-    @GetMapping("/address_book/default/{id}")
+    @GetMapping("/default/{id}")
     public String setDefaultAddress(@PathVariable("id") Integer addressId,
                                     HttpServletRequest request,
                                     @RequestParam(name = "redirect", required = false) String redirect) {

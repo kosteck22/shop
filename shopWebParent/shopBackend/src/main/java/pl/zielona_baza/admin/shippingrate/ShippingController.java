@@ -1,12 +1,8 @@
 package pl.zielona_baza.admin.shippingrate;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pl.zielona_baza.admin.paging.PagingAndSortingHelper;
 import pl.zielona_baza.admin.paging.PagingAndSortingParam;
@@ -16,27 +12,33 @@ import pl.zielona_baza.common.entity.ShippingRate;
 import java.util.List;
 
 @Controller
+@RequestMapping("/shipping_rates")
 public class ShippingController {
-
     private final String defaultRedirectURL = "redirect:/shipping_rates/page/1?sortField=country&sortDir=asc";
+    private final ShippingRateService shippingRateService;
 
-    @Autowired
-    private ShippingRateService shippingRateService;
+    public ShippingController(ShippingRateService shippingRateService) {
+        this.shippingRateService = shippingRateService;
+    }
 
-    @GetMapping("/shipping_rates")
+    @GetMapping
     public String listFirstPage() {
         return defaultRedirectURL;
     }
 
-    @GetMapping("/shipping_rates/page/{pageNum}")
+    @GetMapping("/page/{pageNum}")
     public String listByPage(@PathVariable("pageNum") Integer pageNum,
-                             @PagingAndSortingParam(listName = "shippingRates")PagingAndSortingHelper helper) {
-        shippingRateService.listByPage(pageNum, helper);
+                             @RequestParam(name = "sortField", required = false) String sortField,
+                             @RequestParam(name = "sortDir", required = false) String sortDir,
+                             @RequestParam(name = "limit", required = false) Integer limit,
+                             @RequestParam(name = "keyword", required = false) String keyword,
+                             Model model) {
+        shippingRateService.listByPage(pageNum, sortField, sortDir, limit, keyword, model);
 
         return "shipping_rates/shipping_rates";
     }
 
-    @GetMapping("/shipping_rates/new")
+    @GetMapping("/new")
     public String newRate(Model model) {
         List<Country> listCountries = shippingRateService.listAllCountries();
 
@@ -47,7 +49,7 @@ public class ShippingController {
         return "shipping_rates/shipping_rate_form";
     }
 
-    @PostMapping("/shipping_rates/save")
+    @PostMapping("/save")
     public String saveRate(ShippingRate rate, RedirectAttributes redirectAttributes) {
         try {
             shippingRateService.save(rate);
@@ -59,7 +61,7 @@ public class ShippingController {
         return defaultRedirectURL;
     }
 
-    @GetMapping("/shipping_rates/edit/{id}")
+    @GetMapping("/edit/{id}")
     public String editRate(@PathVariable(name = "id") Integer id, Model model, RedirectAttributes redirectAttributes) {
         try {
             ShippingRate rate = shippingRateService.get(id);
@@ -76,10 +78,9 @@ public class ShippingController {
         }
     }
 
-    @GetMapping("/shipping_rates/cod/{id}/enabled/{supported}")
+    @GetMapping("/cod/{id}/enabled/{supported}")
     public String updateCODSupport(@PathVariable(name = "id") Integer id,
                                    @PathVariable(name = "supported") Boolean supported,
-                                   Model model,
                                    RedirectAttributes redirectAttributes) {
         try {
             shippingRateService.updateCODSupport(id, supported);
@@ -91,7 +92,7 @@ public class ShippingController {
         return defaultRedirectURL;
     }
 
-    @GetMapping("/shipping_rates/delete/{id}")
+    @GetMapping("/delete/{id}")
     public String deleteRate(@PathVariable(name = "id") Integer id, Model model, RedirectAttributes redirectAttributes) {
         try {
             shippingRateService.delete(id);

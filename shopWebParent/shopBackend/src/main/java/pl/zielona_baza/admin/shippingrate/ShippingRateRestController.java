@@ -7,8 +7,11 @@ import pl.zielona_baza.common.exception.ProductNotFoundException;
 
 @RestController
 public class ShippingRateRestController {
+    private final ShippingRateService shippingRateService;
 
-    @Autowired private ShippingRateService shippingRateService;
+    public ShippingRateRestController(ShippingRateService shippingRateService) {
+        this.shippingRateService = shippingRateService;
+    }
 
     @PostMapping("/get_shipping_cost")
     public String getShippingCost(Integer productId, Integer countryId, String state) throws ProductNotFoundException {

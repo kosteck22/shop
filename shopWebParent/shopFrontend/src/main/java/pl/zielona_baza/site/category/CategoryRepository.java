@@ -10,8 +10,8 @@ import java.util.List;
 public interface CategoryRepository extends JpaRepository<Category, Integer> {
 
     @Query("SELECT c FROM Category c WHERE c.enabled = true ORDER BY c.name ASC")
-    public List<Category> findAllEnabled();
+    List<Category> findAllEnabled();
 
     @Query("SELECT c FROM Category c WHERE c.alias = ?1 AND c.enabled = true")
-    public Category findByAliasEnabled(String alias);
+    Category findByAliasEnabled(String alias);
 }

@@ -11,6 +11,11 @@
   <div>
     <h2>Manage Product | [[${pageTitle}]]</h2>
   </div>
+
+  <div th:if="${message != null}" class="alert alert-danger text-center">
+    [[${message}]]
+  </div>
+
   <div>
     <form th:action="@{/products/save}" method="post" style="max-width: 800px; margin: 0 auto"
           enctype="multipart/form-data"

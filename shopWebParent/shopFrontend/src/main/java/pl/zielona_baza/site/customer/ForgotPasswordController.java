@@ -21,12 +21,13 @@ import java.io.UnsupportedEncodingException;
 
 @Controller
 public class ForgotPasswordController {
+    private final CustomerService customerService;
+    private final SettingService settingService;
 
-    @Autowired
-    private CustomerService customerService;
-
-    @Autowired
-    private SettingService settingService;
+    public ForgotPasswordController(CustomerService customerService, SettingService settingService) {
+        this.customerService = customerService;
+        this.settingService = settingService;
+    }
 
     @GetMapping("/forgot_password")
     public String showRequestForm() {
