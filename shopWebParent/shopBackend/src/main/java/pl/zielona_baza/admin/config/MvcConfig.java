@@ -1,7 +1,13 @@
 package pl.zielona_baza.admin.config;
 
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.method.support.HandlerMethodArgumentResolver;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import pl.zielona_baza.admin.order.OrderTrackParamResolver;
+import pl.zielona_baza.admin.order.ProductDetailsParamHelper;
+import pl.zielona_baza.admin.order.ProductDetailsParamResolver;
+
+import java.util.List;
 
 @Configuration
 public class MvcConfig implements WebMvcConfigurer {
@@ -22,4 +28,10 @@ public class MvcConfig implements WebMvcConfigurer {
 
         registry.addResourceHandler(logicalPath).addResourceLocations("file:/" + absolutePath + "/");
     }*/
+
+    @Override
+    public void addArgumentResolvers(List<HandlerMethodArgumentResolver> resolvers) {
+        resolvers.add(new OrderTrackParamResolver());
+        resolvers.add(new ProductDetailsParamResolver());
+    }
 }

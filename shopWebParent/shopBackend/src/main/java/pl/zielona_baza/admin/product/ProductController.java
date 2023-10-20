@@ -19,9 +19,11 @@ import pl.zielona_baza.common.entity.product.Product;
 import pl.zielona_baza.common.exception.ProductNotFoundException;
 
 import javax.imageio.ImageIO;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
+import java.util.Locale;
 
 @Controller
 @RequestMapping("/products")
@@ -99,7 +101,7 @@ public class ProductController {
                               BindingResult result,
                               Model model,
                               @RequestParam("fileImage") MultipartFile mainImageMultipart,
-                              @RequestParam(value = "extraImage", required = false) MultipartFile[] extraImageMultiparts,
+                              @RequestParam(name = "extraImage", required = false) MultipartFile[] extraImageMultipart,
                               @RequestParam(name = "imageIds", required = false) String[] imageIds,
                               @RequestParam(name = "imageNames", required = false) String[] imageNames,
                               @RequestParam(name = "detailIds", required = false) String[] detailIds,
@@ -140,7 +142,7 @@ public class ProductController {
         }
 
         try {
-            productService.save(product, mainImageMultipart, extraImageMultiparts,
+            productService.save(product, mainImageMultipart, extraImageMultipart,
                     detailIds, detailNames, detailValues, imageIds, imageNames);
             redirectAttributes.addFlashAttribute("message", "The product has been saved successfully.");
 

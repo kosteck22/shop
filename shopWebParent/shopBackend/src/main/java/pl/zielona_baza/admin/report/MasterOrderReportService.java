@@ -33,8 +33,8 @@ public class MasterOrderReportService extends AbstractReportService{
                 listOrders.stream()
                     .filter(order -> reportItem.getIdentifier().equals(dateFormatter.format(order.getOrderTime())))
                     .forEach(order -> {
-                        reportItem.addGrossSales(order.getTotal());
-                        reportItem.addNetSales(order.getSubtotal() - order.getProductCost().floatValue());
+                        reportItem.addGrossSales(order.getTotal().floatValue());
+                        reportItem.addNetSales(order.getSubtotal().floatValue() - order.getProductCost().floatValue());
                         reportItem.increaseOrdersCount();
                     })
         );

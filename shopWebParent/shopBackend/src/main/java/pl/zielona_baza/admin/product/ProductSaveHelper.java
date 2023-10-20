@@ -70,16 +70,14 @@ public class ProductSaveHelper {
         }
     }
 
-    static List<String> setNewExtraImageNames(MultipartFile[] extraImageMultiparts, Product product) {
+    static List<String> setNewExtraImageNames(MultipartFile[] extraImageMultipart, Product product) {
         List<String> imgNames = new ArrayList<>();
 
-        if (extraImageMultiparts.length > 0) {
-            for (MultipartFile multipartFile : extraImageMultiparts) {
-                if(!multipartFile.isEmpty() && isImage(multipartFile)) {
-                    String fileName = UUID.randomUUID().toString();
-                    product.addExtraImage(fileName);
-                    imgNames.add(fileName);
-                }
+        for (MultipartFile multipartFile : extraImageMultipart) {
+            if (!multipartFile.isEmpty() && isImage(multipartFile)) {
+                String fileName = UUID.randomUUID().toString();
+                product.addExtraImage(fileName);
+                imgNames.add(fileName);
             }
         }
         return imgNames;
@@ -116,7 +114,7 @@ public class ProductSaveHelper {
             for (int i = 0; i < detailNames.length; i++) {
                 if (stillExistDetail) break;
 
-                Integer id = Integer.parseInt(detailIds[i]);
+                int id = Integer.parseInt(detailIds[i]);
                 String name = StringUtils.cleanPath(detailNames[i]);
                 String value = StringUtils.cleanPath(detailValues[i]);
 
@@ -135,7 +133,7 @@ public class ProductSaveHelper {
         }
 
         for (int i = 0; i < detailNames.length; i++) {
-            Integer id = Integer.parseInt(detailIds[i]);
+            int id = Integer.parseInt(detailIds[i]);
             String name = StringUtils.cleanPath(detailNames[i]);
             String value = StringUtils.cleanPath(detailValues[i]);
 

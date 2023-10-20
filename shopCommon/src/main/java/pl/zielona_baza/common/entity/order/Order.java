@@ -9,6 +9,7 @@ import pl.zielona_baza.common.entity.Address;
 import pl.zielona_baza.common.entity.Customer;
 
 import javax.persistence.*;
+import javax.validation.constraints.*;
 import java.math.BigDecimal;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -26,39 +27,72 @@ public class Order {
     private Integer id;
 
     @Column(name = "first_name", nullable = false, length = 45)
+    @NotBlank
+    @Size(min = 2, max = 45)
     private String firstName;
 
     @Column(name = "last_name", nullable = false, length = 45)
+    @NotBlank
+    @Size(min = 2, max = 45)
     private String lastName;
 
     @Column(name = "phone_number", nullable = false, length = 15)
+    @NotBlank
+    @Pattern(regexp = "[+]{1}(?:[0-9\\-\\(\\)\\/\\.]\\s?){6,15}[0-9]{1}$",
+            message = "Enter valid phone number(The numbers should start with a plus sign. " +
+                    "It should be followed by Country code and National number.)")
     private String phoneNumber;
 
-    @Column(name = "address_line1", nullable = false, length = 64)
+    @Column(name = "address_line_1", nullable = false, length = 64)
+    @NotBlank
+    @Size(min = 9, max = 64)
     private String addressLine1;
 
-    @Column(name = "address_line2", length = 64)
+    @Column(name = "address_line_2", length = 64)
+    @Size(max = 64)
     private String addressLine2;
 
     @Column(name = "city", nullable = false, length = 45)
+    @NotBlank
+    @Size(min = 3, max = 45)
     private String city;
 
     @Column(name = "state", nullable = false, length = 45)
+    @NotBlank
+    @Size(min = 3, max = 45)
     private String state;
 
     @Column(name = "postal_code", nullable = false, length = 10)
+    @NotBlank
+    @Size(min = 3, max = 10)
     private String postalCode;
 
     @Column(nullable = false, length = 45)
+    @NotBlank
+    @Size(min = 2, max = 45)
     private String country;
 
     private Date orderTime;
 
-    private float shippingCost;
+    @DecimalMin(value = "0.0", inclusive = false)
+    @Digits(integer = 6, fraction = 2)
+    private BigDecimal shippingCost;
+
+    @DecimalMin(value = "0.0", inclusive = false)
+    @Digits(integer = 6, fraction = 2)
     private BigDecimal productCost;
-    private float subtotal;
+
+    @DecimalMin(value = "0.0", inclusive = false)
+    @Digits(integer = 6, fraction = 2)
+    private BigDecimal subtotal;
+
+    @DecimalMin(value = "0.0", inclusive = false)
+    @Digits(integer = 6, fraction = 2)
+    private BigDecimal total;
+
+    @DecimalMax(value = "50.0", inclusive = false)
+    @Digits(integer = 2, fraction = 2)
     private float tax;
-    private float total;
 
     private int deliverDays;
     private Date deliverDate;
@@ -80,7 +114,7 @@ public class Order {
     @OrderBy("updatedTime ASC")
     private List<OrderTrack> orderTracks = new ArrayList<>();
 
-    public Order(Integer id, Date orderTime, BigDecimal productCost, float subtotal, float total) {
+    public Order(Integer id, Date orderTime, BigDecimal productCost, BigDecimal subtotal, BigDecimal total) {
         this.id = id;
         this.orderTime = orderTime;
         this.productCost = productCost;

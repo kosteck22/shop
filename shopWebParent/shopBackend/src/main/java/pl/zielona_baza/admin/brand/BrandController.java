@@ -1,7 +1,9 @@
 package pl.zielona_baza.admin.brand;
 
+import org.springframework.beans.propertyeditors.StringTrimmerEditor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -106,5 +108,11 @@ public class BrandController {
         }
 
         return "redirect:/brands";
+    }
+
+    @InitBinder
+    public void initBinder(WebDataBinder webDataBinder) {
+        StringTrimmerEditor editor = new StringTrimmerEditor(true);
+        webDataBinder.registerCustomEditor(String.class, editor);
     }
 }

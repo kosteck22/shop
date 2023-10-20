@@ -104,7 +104,7 @@ public class ProductService {
 
     public void save(Product product,
                         MultipartFile mainImageMultipart,
-                        MultipartFile[] extraImageMultiparts,
+                        MultipartFile[] extraImageMultipart,
                         String[] detailIds,
                         String[] detailNames,
                         String[] detailValues,
@@ -191,7 +191,6 @@ public class ProductService {
         productToSave.setBrand(brandFromDB);
         productToSave.setCategory(categoryFromDB);
 
-
         if (id == null) {
             productToSave.setCreatedTime(new Date());
         }
@@ -215,13 +214,13 @@ public class ProductService {
             ProductSaveHelper.setExistingExtraImageNames(imageIds, imageNames, productToSave);
         }
 
-        List<String> newExtraImgNames = ProductSaveHelper.setNewExtraImageNames(extraImageMultiparts, productToSave);
+        List<String> newExtraImgNames = ProductSaveHelper.setNewExtraImageNames(extraImageMultipart, productToSave);
         ProductSaveHelper.updateProductDetails(detailIds, detailNames, detailValues, productToSave);
 
         Product savedProduct = productRepository.save(productToSave);
         productRepository.updateReviewCountAndAverageRating(savedProduct.getId());
 
-        ProductSaveHelper.saveUploadedImage(mainImageMultipart,extraImageMultiparts, savedProduct, newExtraImgNames);
+        ProductSaveHelper.saveUploadedImage(mainImageMultipart,extraImageMultipart, savedProduct, newExtraImgNames);
         ProductSaveHelper.deleteExtraImagesWereRemovedOnForm(savedProduct);
     }
 

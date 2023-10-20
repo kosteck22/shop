@@ -6,48 +6,56 @@
     <label class="col-sm-2 col-form-label">Deliver Days:</label>
     <div class="col-sm-10">
       <input type="number" step="1" class="form-control" th:field="*{deliverDays}" required>
+      <div class="alert alert-warning" th:if="${#fields.hasErrors('deliverDays')}" th:errors="*{deliverDays}"></div>
     </div>
   </div>
   <div class="form-group row">
     <label class="col-sm-2 col-form-label">Expected Deliver Date:</label>
     <div class="col-sm-10">
       <input type="date" required class="form-control" th:field="*{deliverDateOnForm}">
+      <div class="alert alert-warning" th:if="${#fields.hasErrors('deliverDateOnForm')}" th:errors="*{deliverDateOnForm}"></div>
     </div>
   </div>
   <div class="form-group row">
     <label class="col-sm-2 col-form-label">First Name:</label>
     <div class="col-sm-10">
       <input type="text" required class="form-control" th:field="*{firstName}">
+      <div class="alert alert-warning" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></div>
     </div>
   </div>
   <div class="form-group row">
     <label class="col-sm-2 col-form-label">Last Name:</label>
     <div class="col-sm-10">
       <input type="text" required class="form-control" th:field="*{lastName}">
+      <div class="alert alert-warning" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></div>
     </div>
   </div>
   <div class="form-group row">
     <label class="col-sm-2 col-form-label">Phone Number:</label>
     <div class="col-sm-10">
       <input type="text" required class="form-control" th:field="*{phoneNumber}">
+      <div class="alert alert-warning" th:if="${#fields.hasErrors('phoneNumber')}" th:errors="*{phoneNumber}"></div>
     </div>
   </div>
   <div class="form-group row">
     <label class="col-sm-2 col-form-label">Address Line 1:</label>
     <div class="col-sm-10">
       <input type="text" required class="form-control" th:field="*{addressLine1}">
+      <div class="alert alert-warning" th:if="${#fields.hasErrors('addressLine1')}" th:errors="*{addressLine1}"></div>
     </div>
   </div>
   <div class="form-group row">
     <label class="col-sm-2 col-form-label">Address Line 2:</label>
     <div class="col-sm-10">
-      <input type="text" required class="form-control" th:field="*{addressLine2}">
+      <input type="text" class="form-control" th:field="*{addressLine2}">
+      <div class="alert alert-warning" th:if="${#fields.hasErrors('addressLine2')}" th:errors="*{addressLine2}"></div>
     </div>
   </div>
   <div class="form-group row">
     <label class="col-sm-2 col-form-label">City:</label>
     <div class="col-sm-10">
       <input type="text" required class="form-control" th:field="*{city}">
+      <div class="alert alert-warning" th:if="${#fields.hasErrors('city')}" th:errors="*{city}"></div>
     </div>
   </div>
   <div class="form-group row">
@@ -75,6 +83,7 @@
     <label class="col-sm-2 col-form-label">Postal Code:</label>
     <div class="col-sm-10">
       <input type="text" class="form-control" th:field="*{postalCode}" required>
+      <div class="alert alert-warning" th:if="${#fields.hasErrors('postalCode')}" th:errors="*{postalCode}"></div>
     </div>
   </div>
 </div>

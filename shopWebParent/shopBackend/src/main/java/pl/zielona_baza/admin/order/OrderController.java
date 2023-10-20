@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pl.zielona_baza.admin.paging.PagingAndSortingHelper;
@@ -26,6 +27,7 @@ import java.util.List;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.Valid;
 
 @Controller
 @RequestMapping("/orders")
@@ -81,11 +83,7 @@ public class OrderController {
             Order order = orderService.get(id);
             loadCurrencySetting(request);
 
-            boolean isVisibleForAdminOrSalesperson = false;
-
-            if (loggedUser.hasRole("Admin") || loggedUser.hasRole("Salesperson")) {
-                isVisibleForAdminOrSalesperson = true;
-            }
+            boolean isVisibleForAdminOrSalesperson = loggedUser.hasRole("Admin") || loggedUser.hasRole("Salesperson");
 
             model.addAttribute("order", order);
             model.addAttribute("isVisibleForAdminOrSalesperson", isVisibleForAdminOrSalesperson);
@@ -105,16 +103,16 @@ public class OrderController {
         try {
             orderService.delete(id);
 
-            redirectAttributes.addFlashAttribute("message", "The order ID " + id + " has been deleted.");
+            redirectAttributes.addFlashAttribute("message", "The order ID %d has been deleted.".formatted(id));
         } catch (OrderNotFoundException ex) {
             redirectAttributes.addFlashAttribute("message", ex.getMessage());
         }
 
         return defaultRedirectURL;
     }
+
     @GetMapping("/edit/{id}")
-    public String editOrder(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes,
-                            HttpServletRequest request) {
+    public String editOrder(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
         try {
             Order order = orderService.get(id);
 
@@ -133,71 +131,35 @@ public class OrderController {
     }
 
     @PostMapping("/save")
-    public String saveOrder(Order order, HttpServletRequest request, RedirectAttributes redirectAttributes) {
+    public String saveOrder(@ProductDetailsParam ProductDetailsParamHelper productDetailsHelper,
+                            @OrderTracksParam OrderTrackParamHelper orderTrackParamHelper,
+                            @Valid Order order,
+                            BindingResult result,
+                            Model model,
+                            RedirectAttributes redirectAttributes,
+                            HttpServletRequest request) {
 
-        updateProductDetails(order, request);
-        updateOrderTracks(order, request);
+        if (result.hasErrors()) {
+            orderService.restoreProductDetailsAndOrderTracks(order, productDetailsHelper, orderTrackParamHelper);
 
-        orderService.save(order);
+            List<Country> listCountries = orderService.listAllCountries();
 
-        redirectAttributes.addFlashAttribute("message", "The order ID " + order.getId() +
-                " has been updated successfully");
+            model.addAttribute("pageTitle", "Edit Order");
+            model.addAttribute("order", order);
+            model.addAttribute("listCountries", listCountries);
+
+            return "orders/order_form";
+        }
+
+        try {
+            orderService.save(order, productDetailsHelper, orderTrackParamHelper);
+
+            redirectAttributes.addFlashAttribute("message", "The order ID " + order.getId() +
+                    " has been updated successfully");
+        } catch (Exception ex) {
+
+        }
 
         return defaultRedirectURL;
-    }
-
-    private void updateOrderTracks(Order order, HttpServletRequest request) {
-        String[] trackIds = request.getParameterValues("trackId");
-        String[] trackStatuses = request.getParameterValues("trackStatus");
-        String[] trackDates = request.getParameterValues("trackDate");
-        String[] trackNotes = request.getParameterValues("trackNotes");
-
-        List<OrderTrack> orderTracks = order.getOrderTracks();
-        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss");
-
-        for (int i = 0; i < trackIds.length; i++) {
-            Integer trackId = Integer.parseInt(trackIds[i]);
-
-            OrderTrack trackRecord = new OrderTrack();
-                trackRecord.setId(trackId > 0 ? trackId : null);
-                trackRecord.setOrder(order);
-                trackRecord.setStatus(OrderStatus.valueOf(trackStatuses[i]));
-                trackRecord.setNotes(trackNotes[i]);
-                try {
-                trackRecord.setUpdatedTime(dateFormatter.parse(trackDates[i]));
-                } catch (ParseException ex) {
-                    ex.printStackTrace();
-                }
-
-                orderTracks.add(trackRecord);
-        }
-    }
-
-    private void updateProductDetails(Order order, HttpServletRequest request) {
-        String[] detailIds = request.getParameterValues("detailId");
-        String[] productIds = request.getParameterValues("productId");
-        String[] productDetailCosts = request.getParameterValues("productDetailCost");
-        String[] quantities = request.getParameterValues("quantity");
-        String[] productPrices = request.getParameterValues("productPrice");
-        String[] productSubtotals = request.getParameterValues("productSubtotal");
-        String[] productShipCosts = request.getParameterValues("productShipCost");
-
-        Set<OrderDetail> orderDetails = order.getOrderDetails();
-
-        for (int i = 0; i < detailIds.length; i++) {
-            Integer detailId = Integer.parseInt(detailIds[i]);
-
-            OrderDetail orderDetail = new OrderDetail();
-                orderDetail.setId(detailId > 0 ? detailId : null);
-                orderDetail.setOrder(order);
-                orderDetail.setProduct(new Product(Integer.parseInt(productIds[i])));
-                orderDetail.setProductCost(Float.parseFloat(productDetailCosts[i]));
-                orderDetail.setQuantity(Integer.parseInt(quantities[i]));
-                orderDetail.setUnitPrice(Float.parseFloat(productPrices[i]));
-                orderDetail.setSubtotal(Float.parseFloat(productSubtotals[i]));
-                orderDetail.setShippingCost(Float.parseFloat(productShipCosts[i]));
-
-            orderDetails.add(orderDetail);
-        }
     }
 }

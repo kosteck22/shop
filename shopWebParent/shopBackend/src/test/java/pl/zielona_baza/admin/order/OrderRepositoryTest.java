@@ -1,5 +1,6 @@
 package pl.zielona_baza.admin.order;
 
+import org.apache.poi.ss.formula.functions.T;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -12,14 +13,18 @@ import pl.zielona_baza.common.entity.order.OrderDetail;
 import pl.zielona_baza.common.entity.order.OrderStatus;
 import pl.zielona_baza.common.entity.order.PaymentMethod;
 import pl.zielona_baza.common.entity.product.Product;
+import software.amazon.awssdk.services.s3.endpoints.internal.Value;
 
 import java.text.DateFormat;
+import java.text.NumberFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.Currency;
+import java.util.function.Predicate;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.in;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -46,11 +51,11 @@ class OrderRepositoryTest {
         mainOrder.setState(customer.getState());
         mainOrder.setCountry(customer.getCountry().getName());
         mainOrder.setPostalCode(customer.getPostalCode());
-        mainOrder.setShippingCost(10);
+       // mainOrder.setShippingCost(10);
         mainOrder.setProductCost(product.getCost());
         mainOrder.setTax(0);
-        mainOrder.setSubtotal(product.getPrice().floatValue());
-        mainOrder.setTotal(product.getPrice().floatValue() + 10);
+      //  mainOrder.setSubtotal(product.getPrice().floatValue());
+      //  mainOrder.setTotal(product.getPrice().floatValue() + 10);
         mainOrder.setPaymentMethod(PaymentMethod.CREDIT_CARD);
         mainOrder.setStatus(OrderStatus.NEW);
         mainOrder.setDeliverDate(new Date());
@@ -91,6 +96,11 @@ class OrderRepositoryTest {
                     o.getSubtotal(),
                     o.getTotal());
         });
+
+    }
+
+    @Test
+    public void test() {
 
     }
 }

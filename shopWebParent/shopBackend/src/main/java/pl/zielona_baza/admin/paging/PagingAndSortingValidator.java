@@ -23,7 +23,7 @@ public class PagingAndSortingValidator {
 
         if (availableSortFields.contains(defaultSortField)) return defaultSortField;
 
-        if (availableSortFields.size() > 0) return availableSortFields.get(0);
+        if (!availableSortFields.isEmpty()) return availableSortFields.get(0);
 
         return "id";
     }

@@ -35,12 +35,12 @@ public class OrderTrack {
 
     @Transient
     public String getUpdatedTimeOnForm() {
-        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss");
+        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm");
         return dateFormatter.format(this.updatedTime);
     }
 
     public void setUpdatedTimeOnForm(String dateString) {
-        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm:ss");
+        DateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'hh:mm");
 
         try {
             this.updatedTime = dateFormatter.parse(dateString);

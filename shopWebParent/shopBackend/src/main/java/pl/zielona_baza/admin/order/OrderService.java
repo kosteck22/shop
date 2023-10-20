@@ -7,17 +7,25 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
+import pl.zielona_baza.admin.exception.ValidationException;
 import pl.zielona_baza.admin.paging.PagingAndSortingHelper;
 import pl.zielona_baza.admin.setting.country.CountryRepository;
 import pl.zielona_baza.common.entity.Country;
 import pl.zielona_baza.common.entity.order.Order;
+import pl.zielona_baza.common.entity.order.OrderDetail;
 import pl.zielona_baza.common.entity.order.OrderStatus;
 import pl.zielona_baza.common.entity.order.OrderTrack;
+import pl.zielona_baza.common.entity.product.Product;
 import pl.zielona_baza.common.exception.OrderNotFoundException;
 
+import javax.servlet.http.HttpServletRequest;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import static pl.zielona_baza.admin.paging.PagingAndSortingValidator.*;
 import static pl.zielona_baza.admin.paging.PagingAndSortingValidator.validateSortDir;
@@ -64,22 +72,27 @@ public class OrderService {
     }
 
     public Order get(Integer id) {
-        return orderRepository.findById(id).orElseThrow(() -> new OrderNotFoundException("Count not find order with ID " + id));
+        return orderRepository.findById(id)
+                .orElseThrow(() -> new OrderNotFoundException("Count not find order with ID %d".formatted(id)));
     }
 
     public void delete(Integer id) {
-        Order order = orderRepository.findById(id).orElseThrow(() -> new OrderNotFoundException("Order not found with id " + id));
+        Order order = orderRepository.findById(id)
+                .orElseThrow(() -> new OrderNotFoundException("Order not found with id %d".formatted(id)));
         orderRepository.delete(order);
     }
 
     public List<Country> listAllCountries() {
-
         return countryRepository.findAllByOrderByNameAsc();
     }
 
-    public void save(Order orderInForm) {
+    public void save(Order orderInForm, ProductDetailsParamHelper productDetailsHelper, OrderTrackParamHelper orderTrackParamHelper) {
+        updateProductDetails(orderInForm, productDetailsHelper);
+        updateOrderTracks(orderInForm, orderTrackParamHelper);
+
         Order orderInDB = orderRepository.findById(orderInForm.getId())
                 .orElseThrow(() -> new OrderNotFoundException("Order not found with id " + orderInForm.getId()));
+
 
         orderInForm.setOrderTime(orderInDB.getOrderTime());
         orderInForm.setCustomer(orderInDB.getCustomer());
@@ -89,7 +102,7 @@ public class OrderService {
 
     public void updateStatus(Integer orderId, String status) {
         Order orderInDB = orderRepository.findById(orderId)
-                .orElseThrow(() -> new OrderNotFoundException("Order not found with id " + orderId));
+                .orElseThrow(() -> new OrderNotFoundException("Order not found with id %d".formatted(orderId)));
         OrderStatus statusToUpdate = OrderStatus.valueOf(status);
 
         if(!orderInDB.hasStatus(statusToUpdate)) {
@@ -107,6 +120,19 @@ public class OrderService {
 
             orderRepository.save(orderInDB);
         }
+    }
+
+    private void updateOrderTracks(Order order, OrderTrackParamHelper helper) {
+        helper.setOrderTracks(order);
+    }
+
+    private void updateProductDetails(Order order, ProductDetailsParamHelper helper) {
+        helper.setOrderDetails(order);
+    }
+
+    public void restoreProductDetailsAndOrderTracks(Order order, ProductDetailsParamHelper productDetailsHelper, OrderTrackParamHelper orderTrackParamHelper) {
+        updateProductDetails(order, productDetailsHelper);
+        updateOrderTracks(order, orderTrackParamHelper);
 
     }
 }

@@ -7,6 +7,9 @@
   <div>
     <h2>Manage Orders | [[${pageTitle}]]</h2>
   </div>
+  <div th:if="${message != null}" class="alert alert-danger text-center">
+    [[${message}]]
+  </div>
   <div>
     <form th:action="@{/orders/save}" method="post" style="max-width: 500px; margin: 0 auto"
           th:object="${order}" onsubmit="return processFormBeforeSubmit();">
