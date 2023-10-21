@@ -51,7 +51,7 @@ public class BrandController {
 
     @PostMapping("/save")
     public String saveBrand(Brand brand,
-                            @RequestParam("fileImage") MultipartFile multipartFile,
+                            @RequestParam(name = "fileImage", required = false) MultipartFile multipartFile,
                             RedirectAttributes redirectAttributes,
                             Model model) throws IOException {
         try {

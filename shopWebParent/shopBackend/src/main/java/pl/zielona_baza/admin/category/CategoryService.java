@@ -25,9 +25,11 @@ public class CategoryService {
     private static final int CATEGORIES_PER_PAGE = 20;
 
     private final CategoryRepository categoryRepository;
+    private final CategoryValidator validator;
 
-    public CategoryService(CategoryRepository categoryRepository) {
+    public CategoryService(CategoryRepository categoryRepository, CategoryValidator validator) {
         this.categoryRepository = categoryRepository;
+        this.validator = validator;
     }
 
     public void listByPage(Integer pageNumber, String sortField, String sortDir, Integer limit, String keyword, Model model) {
@@ -41,10 +43,66 @@ public class CategoryService {
         helper.listEntities(categoryRepository, model);
     }
 
+    public void save(Category category, MultipartFile multipartFile) throws CategoryNotFoundException, CustomValidationException, IOException {
+        CategoryValidatorResult result = validator.validate(category, categoryRepository, multipartFile);
+
+        if (result.isNotValid()) {
+            throw new CustomValidationException(result.message());
+        }
+
+        //set parent
+        if (category.getParent() != null) {
+            Category parentCategory = categoryRepository.findById(category.getParent().getId()).orElseThrow(() ->
+                    new CategoryNotFoundException("Parent category not found."));
+            category.setParent(parentCategory);
+            String allParentIds = parentCategory.getAllParentIds() == null ? "-" : parentCategory.getAllParentIds();
+            allParentIds += parentCategory.getId() + "-";
+            category.setAllParentIds(allParentIds);
+        }
+
+        //save img
+        if (!multipartFile.isEmpty()) {
+            String fileName = category.getName() + UUID.randomUUID();
+            category.setImage(fileName);
+
+            Category savedCategory = categoryRepository.save(category);
+            String uploadDir = "category-images/" + savedCategory.getId();
+
+            AmazonS3Util.removeFolder(uploadDir);
+            AmazonS3Util.uploadFile(uploadDir, fileName, multipartFile.getInputStream());
+
+        } else {
+            categoryRepository.save(category);
+        }
+    }
+
+    public void delete(Integer id) throws CategoryNotFoundException, CategoryHasChildrenException {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new CategoryNotFoundException("Category with ID %d not found.".formatted(id)));
+        if (category.isHasChildren())
+            throw new CategoryHasChildrenException("You cannot delete category with children.");
+
+        categoryRepository.deleteById(id);
+
+        String categoryDir = "category-images/" + id;
+        AmazonS3Util.removeFolder(categoryDir);
+    }
+
     public List<Category> listAll(String sortDir, String prefixSubCategory) {
         List<Category> rootCategories = categoryRepository.findRootCategories(Sort.by("name").ascending());
 
         return listHierarchicalCategories(rootCategories, sortDir, prefixSubCategory);
+    }
+
+    public void updateCategoryEnabledStatus(Integer id, Boolean enabled) throws CategoryNotFoundException {
+        categoryRepository.findById(id)
+                .orElseThrow(() -> new CategoryNotFoundException("Category with ID %d not found.".formatted(id)));
+        categoryRepository.updateEnabledStatus(id, enabled);
+    }
+
+    public Category getCategoryById(Integer id) throws CategoryNotFoundException {
+        return categoryRepository.findById(id)
+                .orElseThrow(() -> new CategoryNotFoundException("Category with ID %d not found.".formatted(id)));
     }
 
     private List<Category> listHierarchicalCategories(List<Category> rootCategories, String sortDir, String prefixSubCategory) {
@@ -151,90 +209,14 @@ public class CategoryService {
         return sortedChildren;
     }
 
-    private boolean isNameValid(Integer id, String name) {
-        if (name == null || name.length() < 2 || name.length() > 128) return false;
-
-        boolean isCreatingNew = (id == null || id == 0);
-        Category category = categoryRepository.findByName(name);
-
-        if (isCreatingNew) {
-            return category == null;
-        } else {
-            return category == null || id.equals(category.getId());
-        }
-    }
-
-    private boolean isAliasValid(Integer id, String alias) {
-        if (alias == null || alias.length() < 2 || alias.length() > 64) return false;
-
-        boolean isCreatingNew = (id == null || id == 0);
-        Category category = categoryRepository.findByAlias(alias);
-
-        if (isCreatingNew) {
-            return category == null;
-        } else {
-            return category == null || id.equals(category.getId());
-        }
-    }
-
-    public void save(Category category, MultipartFile multipartFile) throws CategoryNotFoundException, CustomValidationException, IOException {
-        //Validate category name
-        if (category.getName() != null) category.setName(category.getName().trim());
-        if (!isNameValid(category.getId(), category.getName())) {
-            throw new CustomValidationException("Category name is not valid try another one");
-        }
-
-        //Validate category alias
-        if (category.getAlias() != null) category.setAlias(category.getAlias().trim());
-        if (!isAliasValid(category.getId(), category.getAlias())) {
-            throw new CustomValidationException("Category alias is not valid try another one");
-        }
-
-        //Validate&Set parent
-        if (category.getParent() != null) {
-            Category parentCategory = categoryRepository.findById(category.getParent().getId()).orElseThrow(() ->
-                    new CategoryNotFoundException("Parent category not found."));
-            category.setParent(parentCategory);
-            String allParentIds = parentCategory.getAllParentIds() == null ? "-" : parentCategory.getAllParentIds();
-            allParentIds += parentCategory.getId() + "-";
-            category.setAllParentIds(allParentIds);
-        }
-
-        //New category
-        if (category.getId() == null || category.getId() == 0) {
-            if (multipartFile.isEmpty()) {
-                throw new CustomValidationException("File image cannot be empty");
-            }
-        }
-
-        if (!multipartFile.isEmpty()) {
-            String fileName = category.getName() + UUID.randomUUID();
-            category.setImage(fileName);
-
-            Category savedCategory = categoryRepository.save(category);
-            String uploadDir = "category-images/" + savedCategory.getId();
-
-            AmazonS3Util.removeFolder(uploadDir);
-            AmazonS3Util.uploadFile(uploadDir, fileName, multipartFile.getInputStream());
-
-        } else {
-            categoryRepository.save(category);
-        }
-    }
-
-    public Category getCategoryById(Integer id) throws CategoryNotFoundException {
-        return categoryRepository.findById(id)
-                .orElseThrow(() -> new CategoryNotFoundException("Category with ID %d not found.".formatted(id)));
-    }
-
     public String checkUnique(Integer id, String name, String alias) {
-        if (name == null || name.trim().length() < 2) return "Bad Name";
-        if (alias == null || alias.trim().length() < 2) return "Bad Alias";
+        if (name == null || name.length() < 2) return "Bad Name";
+        if (alias == null || alias.length() < 2) return "Bad Alias";
 
         boolean isCreatingNew = (id == null || id == 0);
 
-        Category categoryByName = categoryRepository.findByName(name.trim());
-        Category categoryByAlias = categoryRepository.findByAlias(alias.trim());
+        Category categoryByName = categoryRepository.findByName(name);
+        Category categoryByAlias = categoryRepository.findByAlias(alias);
 
         if (isCreatingNew) {
             if (categoryByName != null) return "DuplicateName";
@@ -245,23 +227,5 @@ public class CategoryService {
             if (categoryByAlias != null && !Objects.equals(categoryByAlias.getId(), id)) return "DuplicateAlias";
         }
         return "OK";
-    }
-
-    public void updateCategoryEnabledStatus(Integer id, Boolean enabled) throws CategoryNotFoundException {
-        categoryRepository.findById(id)
-                .orElseThrow(() -> new CategoryNotFoundException("Category with ID %d not found.".formatted(id)));
-        categoryRepository.updateEnabledStatus(id, enabled);
-    }
-
-    public void delete(Integer id) throws CategoryNotFoundException, CategoryHasChildrenException {
-        Category category = categoryRepository.findById(id)
-                .orElseThrow(() -> new CategoryNotFoundException("Category with ID %d not found.".formatted(id)));
-        if (category.isHasChildren())
-            throw new CategoryHasChildrenException("You cannot delete category with children.");
-
-        categoryRepository.deleteById(id);
-
-        String categoryDir = "category-images/" + id;
-        AmazonS3Util.removeFolder(categoryDir);
     }
 }

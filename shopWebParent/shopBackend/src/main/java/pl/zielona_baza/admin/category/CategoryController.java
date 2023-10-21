@@ -1,10 +1,13 @@
 package pl.zielona_baza.admin.category;
 
+import org.springframework.beans.propertyeditors.StringTrimmerEditor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import pl.zielona_baza.admin.brand.BrandNotFoundException;
 import pl.zielona_baza.admin.exception.CustomValidationException;
 import pl.zielona_baza.common.exception.CategoryNotFoundException;
 import pl.zielona_baza.admin.category.export.CategoryExcelExporter;
@@ -71,51 +74,36 @@ public class CategoryController {
     }
 
     @GetMapping("/edit/{id}")
-    public String editCategory(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes, Model model) {
-        try {
-            Category category = categoryService.getCategoryById(id);
-            List<Category> listCategories = categoryService.listCategoriesUsedInForm();
+    public String editCategory(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes, Model model) throws CategoryNotFoundException {
+        Category category = categoryService.getCategoryById(id);
+        List<Category> listCategories = categoryService.listCategoriesUsedInForm();
 
-            model.addAttribute("pageTitle", "Edit category");
-            model.addAttribute("category", category);
-            model.addAttribute("listCategories", listCategories);
+        model.addAttribute("pageTitle", "Edit category");
+        model.addAttribute("category", category);
+        model.addAttribute("listCategories", listCategories);
 
-            return "categories/category_form";
-        } catch (CategoryNotFoundException ex) {
-            redirectAttributes.addFlashAttribute("message", ex.getMessage());
-
-            return "redirect:/categories";
-        }
+        return "categories/category_form";
     }
 
     @GetMapping("/{id}/enabled/{enabled}")
     public String updateCategoryEnabledStatus(@PathVariable("id") Integer id,
                                               @PathVariable("enabled") Boolean enabled,
-                                              RedirectAttributes redirectAttributes) {
-        try {
-            categoryService.updateCategoryEnabledStatus(id, enabled);
+                                              RedirectAttributes redirectAttributes) throws CategoryNotFoundException {
+        categoryService.updateCategoryEnabledStatus(id, enabled);
 
-            String status = enabled ? "enabled" : "disabled";
-            String message = "Category with ID %d has been %s".formatted(id, status);
-            redirectAttributes.addFlashAttribute("message", message);
-
-        } catch (CategoryNotFoundException ex) {
-            redirectAttributes.addFlashAttribute("message", ex.getMessage());
-        }
+        String status = enabled ? "enabled" : "disabled";
+        String message = "Category with ID %d has been %s".formatted(id, status);
+        redirectAttributes.addFlashAttribute("message", message);
 
         return "redirect:/categories";
     }
 
     @GetMapping("/delete/{id}")
-    public String deleteCategory(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) {
-        try {
-            categoryService.delete(id);
+    public String deleteCategory(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) throws CategoryHasChildrenException, CategoryNotFoundException {
+        categoryService.delete(id);
+        redirectAttributes.addFlashAttribute(
+                "message", "Category with ID has been deleted %d successfully".formatted(id));
 
-            redirectAttributes.addFlashAttribute(
-                    "message", "Category with ID has been deleted %d successfully".formatted(id));
-        } catch (CategoryNotFoundException | CategoryHasChildrenException ex) {
-            redirectAttributes.addFlashAttribute("message", ex.getMessage());
-        }
         return "redirect:/categories";
     }
 
@@ -138,5 +126,17 @@ public class CategoryController {
         List<Category> categories = categoryService.listAll("asc", "  ");
         CategoryPdfExporter exporter = new CategoryPdfExporter();
         exporter.export(categories, response);
+    }
+
+    @ExceptionHandler({CategoryNotFoundException.class, CategoryHasChildrenException.class})
+    public String handleBrandNotFoundException(BrandNotFoundException e, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("message", e.getMessage());
+        return "redirect:/categories";
+    }
+
+    @InitBinder
+    public void initBinder(WebDataBinder webDataBinder) {
+        StringTrimmerEditor editor = new StringTrimmerEditor(true);
+        webDataBinder.registerCustomEditor(String.class, editor);
     }
 }
