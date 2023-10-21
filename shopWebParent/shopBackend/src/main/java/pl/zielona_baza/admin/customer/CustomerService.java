@@ -41,9 +41,9 @@ public class CustomerService {
         sortField = validateSortField(sortField, SORTABLE_FIELDS_AVAILABLE, "id");
         sortDir = validateSortDir(sortDir);
 
-        PagingAndSortingHelper helper = new PagingAndSortingHelper( "listCustomers", sortField, sortDir, keyword, limit);
+        PagingAndSortingHelper helper = new PagingAndSortingHelper("listCustomers", sortField, sortDir, keyword, limit, pageNumber);
 
-        helper.listEntities(pageNumber, customerRepository, model, customerDTOMapper);
+        helper.listEntities(customerRepository, model, customerDTOMapper);
     }
 
     public CustomerDTO get(Integer id) throws CustomerNotFoundException {

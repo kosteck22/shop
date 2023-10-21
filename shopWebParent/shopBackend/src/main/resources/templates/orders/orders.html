@@ -13,7 +13,7 @@
         [[${message}]]
     </div>
     <div>
-        <form th:action="@{/orders/page/1}" class="form-inline m-3">
+        <form th:action="@{/orders?page=1}" class="form-inline m-3">
             <input type="hidden" name="sortField" th:value="${sortField}">
             <input type="hidden" name="sortDir" th:value="${sortDir}">
             <div class="input-group">
@@ -39,18 +39,18 @@
             <thead class="table-dark">
                 <tr>
 
-                    <th th:replace="fragments :: column_link('id', 'ID', 'none', '/orders/page/')" />
-                    <th th:replace="fragments :: column_link('customer', 'Customer', 'none', '/orders/page/')" />
-                    <th th:replace="fragments :: column_link('total', 'Total', 'none', '/orders/page/')" />
-                    <th th:replace="fragments :: column_link('orderTime', 'Order Time', 'none', '/orders/page/')" />
+                    <th th:replace="fragments :: column_link('id', 'ID', 'none', '/orders?page=')" />
+                    <th th:replace="fragments :: column_link('customer', 'Customer', 'none', '/orders?page=')" />
+                    <th th:replace="fragments :: column_link('total', 'Total', 'none', '/orders?page=')" />
+                    <th th:replace="fragments :: column_link('orderTime', 'Order Time', 'none', '/orders?page=')" />
                     <th class="hideable-column">
-                        <th th:replace="fragments :: column_link('destination', 'Destination', 'tag', '/orders/page/')" />
+                        <th th:replace="fragments :: column_link('destination', 'Destination', 'tag', '/orders?page=')" />
                     </th>
                     <th class="hideable-column">
-                        <th th:replace="fragments :: column_link('paymentMethod', 'Payment Method', 'tag', '/orders/page/')" />
+                        <th th:replace="fragments :: column_link('paymentMethod', 'Payment Method', 'tag', '/orders?page=')" />
                     </th>
                     <th class="hideable-column">
-                        <th th:replace="fragments :: column_link('status', 'Status', 'tag', '/orders/page/')" />
+                        <th th:replace="fragments :: column_link('status', 'Status', 'tag', '/orders?page=')" />
                     </th>
 
                     <th></th>
@@ -141,22 +141,22 @@
         <nav>
             <ul class="pagination justify-content-center flex-wrap">
                 <li th:class="${currentPage > 1 ? 'page-item' : 'page-item disabled'}">
-                    <a th:replace="fragments :: page_link(1, 'First', '/orders/page/')"></a>
+                    <a th:replace="fragments :: page_link(1, 'First', '/orders?page=')"></a>
                 </li>
                 <li th:class="${currentPage > 1 ? 'page-item' : 'page-item disabled'}">
-                    <a th:replace="fragments :: page_link(${currentPage - 1}, 'Previous', '/orders/page/')"></a>
+                    <a th:replace="fragments :: page_link(${currentPage - 1}, 'Previous', '/orders?page=')"></a>
                 </li>
 
                 <li th:class="${currentPage != i ? 'page-item' : 'page-item active'}"
                     th:each="i : ${#numbers.sequence(1, totalPages)}">
-                    <a th:replace="fragments :: page_link(${i}, ${i}, '/orders/page/')"></a>
+                    <a th:replace="fragments :: page_link(${i}, ${i}, '/orders?page=')"></a>
                 </li>
 
                 <li th:class="${currentPage < totalPages ? 'page-item' : 'page-item disabled'}">
-                    <a th:replace="fragments :: page_link(${currentPage + 1}, 'Next', '/orders/page/')"></a>
+                    <a th:replace="fragments :: page_link(${currentPage + 1}, 'Next', '/orders?page=')"></a>
                 </li>
                 <li th:class="${currentPage < totalPages ? 'page-item' : 'page-item disabled'}">
-                    <a th:replace="fragments :: page_link(${totalPages}, 'Last', '/orders/page/')"></a>
+                    <a th:replace="fragments :: page_link(${totalPages}, 'Last', '/orders?page=')"></a>
                 </li>
             </ul>
         </nav>

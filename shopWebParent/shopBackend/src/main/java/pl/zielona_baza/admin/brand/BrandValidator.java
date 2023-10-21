@@ -1,5 +1,6 @@
 package pl.zielona_baza.admin.brand;
 
+import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 import pl.zielona_baza.admin.MethodsUtil;
 import pl.zielona_baza.admin.exception.CustomValidationException;
@@ -9,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Component
 public class BrandValidator {
     private static final String ERROR_DELIMITER = ";";
     private final List<BrandValidationError> errors = new ArrayList<>();

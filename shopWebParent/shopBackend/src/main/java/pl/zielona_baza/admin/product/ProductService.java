@@ -53,7 +53,7 @@ public class ProductService {
         sortField = validateSortField(sortField, SORTABLE_FIELDS_AVAILABLE, "id");
         sortDir = validateSortDir(sortDir);
 
-        PagingAndSortingHelper helper = new PagingAndSortingHelper( "listProducts", sortField, sortDir, keyword, limit);
+        PagingAndSortingHelper helper = new PagingAndSortingHelper("listProducts", sortField, sortDir, keyword, limit, pageNumber);
 
         Pageable pageable = helper.createPageable(pageNumber);
         Page<Product> page;
@@ -93,7 +93,7 @@ public class ProductService {
         sortField = validateSortField(sortField, SORTABLE_FIELDS_AVAILABLE, "id");
         sortDir = validateSortDir(sortDir);
 
-        PagingAndSortingHelper helper = new PagingAndSortingHelper( "listCustomers", sortField, sortDir, keyword, limit);
+        PagingAndSortingHelper helper = new PagingAndSortingHelper( "listCustomers", sortField, sortDir, keyword, limit, pageNumber);
 
         Pageable pageable = helper.createPageable(pageNumber);
         Page<Product> page = productRepository.searchProductsByName(keyword, pageable);

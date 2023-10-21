@@ -22,7 +22,7 @@
         [[${message}]]
     </div>
     <div>
-        <form th:action="@{/shipping_rates/page/1}" class="form-inline m-3">
+        <form th:action="@{/shipping_rates?page=1}" class="form-inline m-3">
             <input type="hidden" name="sortField" th:value="${sortField}">
             <input type="hidden" name="sortDir" th:value="${sortDir}">
             <div class="input-group">
@@ -47,12 +47,12 @@
         <table class="table table-bordered table-striped table-hover table-responsive-xl">
             <thead class="table-dark">
                 <tr>
-                    <th th:replace="fragments :: column_link('id', 'ID', 'none', '/shipping_rates/page/')" />
-                    <th th:replace="fragments :: column_link('country', 'Country', 'none', '/shipping_rates/page/')" />
-                    <th th:replace="fragments :: column_link('state', 'State', 'none', '/shipping_rates/page/')" />
-                    <th th:replace="fragments :: column_link('rate', 'Rate', 'none', '/shipping_rates/page/')" />
-                    <th th:replace="fragments :: column_link('days', 'Days', 'none', '/shipping_rates/page/')" />
-                    <th th:replace="fragments :: column_link('codSupported', 'COD Supported', 'none', '/shipping_rates/page/')" />
+                    <th th:replace="fragments :: column_link('id', 'ID', 'none', '/shipping_rates?page=')" />
+                    <th th:replace="fragments :: column_link('country', 'Country', 'none', '/shipping_rates?page=')" />
+                    <th th:replace="fragments :: column_link('state', 'State', 'none', '/shipping_rates?page=')" />
+                    <th th:replace="fragments :: column_link('rate', 'Rate', 'none', '/shipping_rates?page=')" />
+                    <th th:replace="fragments :: column_link('days', 'Days', 'none', '/shipping_rates?page=')" />
+                    <th th:replace="fragments :: column_link('codSupported', 'COD Supported', 'none', '/shipping_rates?page=')" />
 
                     <th></th>
                 </tr>
@@ -126,22 +126,22 @@
         <nav>
             <ul class="pagination justify-content-center flex-wrap">
                 <li th:class="${currentPage > 1 ? 'page-item' : 'page-item disabled'}">
-                    <a th:replace="fragments :: page_link(1, 'First', '/shipping_rates/page/')"></a>
+                    <a th:replace="fragments :: page_link(1, 'First', '/shipping_rates?page=')"></a>
                 </li>
                 <li th:class="${currentPage > 1 ? 'page-item' : 'page-item disabled'}">
-                    <a th:replace="fragments :: page_link(${currentPage - 1}, 'Previous', '/shipping_rates/page/')"></a>
+                    <a th:replace="fragments :: page_link(${currentPage - 1}, 'Previous', '/shipping_rates?page=')"></a>
                 </li>
 
                 <li th:class="${currentPage != i ? 'page-item' : 'page-item active'}"
                     th:each="i : ${#numbers.sequence(1, totalPages)}">
-                    <a th:replace="fragments :: page_link(${i}, ${i}, '/shipping_rates/page/')"></a>
+                    <a th:replace="fragments :: page_link(${i}, ${i}, '/shipping_rates?page=')"></a>
                 </li>
 
                 <li th:class="${currentPage < totalPages ? 'page-item' : 'page-item disabled'}">
-                    <a th:replace="fragments :: page_link(${currentPage + 1}, 'Next', '/shipping_rates/page/')"></a>
+                    <a th:replace="fragments :: page_link(${currentPage + 1}, 'Next', '/shipping_rates?page=')"></a>
                 </li>
                 <li th:class="${currentPage < totalPages ? 'page-item' : 'page-item disabled'}">
-                    <a th:replace="fragments :: page_link(${totalPages}, 'Last', '/shipping_rates/page/')"></a>
+                    <a th:replace="fragments :: page_link(${totalPages}, 'Last', '/shipping_rates?page=')"></a>
                 </li>
             </ul>
         </nav>

@@ -129,7 +129,7 @@ public class CategoryController {
     }
 
     @ExceptionHandler({CategoryNotFoundException.class, CategoryHasChildrenException.class})
-    public String handleBrandNotFoundException(BrandNotFoundException e, RedirectAttributes redirectAttributes) {
+    public String handleBrandNotFoundException(CategoryNotFoundException e, RedirectAttributes redirectAttributes) {
         redirectAttributes.addFlashAttribute("message", e.getMessage());
         return "redirect:/categories";
     }

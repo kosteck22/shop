@@ -46,9 +46,9 @@ public class ShippingRateService {
         sortField = validateSortField(sortField, SORTABLE_FIELDS_AVAILABLE, "id");
         sortDir = validateSortDir(sortDir);
 
-        PagingAndSortingHelper helper = new PagingAndSortingHelper( "shippingRates", sortField, sortDir, keyword, limit);
+        PagingAndSortingHelper helper = new PagingAndSortingHelper( "shippingRates", sortField, sortDir, keyword, limit, pageNumber);
 
-        helper.listEntities(pageNumber, shippingRateRepository, model);
+        helper.listEntities(shippingRateRepository, model);
     }
 
     public List<Country> listAllCountries() {

@@ -34,7 +34,7 @@
     [[${message}]]
   </div>
   <div>
-    <form th:action="@{/products/page/1}" class="form-inline m-3" id="searchForm">
+    <form th:action="@{/products?page=1}" class="form-inline m-3" id="searchForm">
       <input type="hidden" name="sortField" th:value="${sortField}">
       <input type="hidden" name="sortDir" th:value="${sortDir}">
 
@@ -69,22 +69,22 @@
       <thead class="table-dark">
       <tr>
         <th class="hideable-column">
-          <th th:replace="fragments :: column_link('id', 'Product ID', 'tag', '/products/page/')" />
+          <th th:replace="fragments :: column_link('id', 'Product ID', 'tag', '/products?page=')" />
         </th>
 
         <th>Main Image</th>
 
-        <th th:replace="fragments :: column_link('name', 'Product Name', 'none', '/products/page/')" />
+        <th th:replace="fragments :: column_link('name', 'Product Name', 'none', '/products?page=')" />
 
         <th class="hideable-column">
-         <th th:replace="fragments :: column_link('brand', 'Brand', 'tag', '/products/page/')" />
+         <th th:replace="fragments :: column_link('brand', 'Brand', 'tag', '/products?page=')" />
         </th>
 
         <th class="hideable-column">
-          <th th:replace="fragments :: column_link('category', 'Category', 'tag', '/products/page/')" />
+          <th th:replace="fragments :: column_link('category', 'Category', 'tag', '/products?page=')" />
         </th>
         <th:block sec:authorize="hasAnyAuthority('Admin', 'Editor')">
-        <th th:replace="fragments :: column_link('enabled', 'Enabled', 'none', '/products/page/')" />
+        <th th:replace="fragments :: column_link('enabled', 'Enabled', 'none', '/products?page=')" />
         </th:block>
         <th></th>
       </tr>
@@ -192,22 +192,22 @@
     <nav>
       <ul class="pagination justify-content-center flex-wrap">
         <li th:class="${currentPage > 1 ? 'page-item' : 'page-item disabled'}">
-          <a th:replace="fragments :: page_link(1, 'First', '/products/page/')"></a>
+          <a th:replace="fragments :: page_link(1, 'First', '/products?page=')"></a>
         </li>
         <li th:class="${currentPage > 1 ? 'page-item' : 'page-item disabled'}">
-          <a th:replace="fragments :: page_link(${currentPage - 1}, 'Previous', '/products/page/')"></a>
+          <a th:replace="fragments :: page_link(${currentPage - 1}, 'Previous', '/products?page=')"></a>
         </li>
 
         <li th:class="${currentPage != i ? 'page-item' : 'page-item active'}"
             th:each="i : ${#numbers.sequence(1, totalPages)}">
-          <a th:replace="fragments :: page_link(${i}, ${i}, '/products/page/')"></a>
+          <a th:replace="fragments :: page_link(${i}, ${i}, '/products?page=')"></a>
         </li>
 
         <li th:class="${currentPage < totalPages ? 'page-item' : 'page-item disabled'}">
-          <a th:replace="fragments :: page_link(${currentPage + 1}, 'Next', '/products/page/')"></a>
+          <a th:replace="fragments :: page_link(${currentPage + 1}, 'Next', '/products?page=')"></a>
         </li>
         <li th:class="${currentPage < totalPages ? 'page-item' : 'page-item disabled'}">
-          <a th:replace="fragments :: page_link(${totalPages}, 'Last', '/products/page/')"></a>
+          <a th:replace="fragments :: page_link(${totalPages}, 'Last', '/products?page=')"></a>
         </li>
       </ul>
     </nav>

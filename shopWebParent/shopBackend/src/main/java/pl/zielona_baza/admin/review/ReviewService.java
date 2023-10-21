@@ -34,9 +34,9 @@ public class ReviewService {
         sortField = validateSortField(sortField, SORTABLE_FIELDS_AVAILABLE, "name");
         sortDir = validateSortDir(sortDir);
 
-        PagingAndSortingHelper helper = new PagingAndSortingHelper( "listReviews", sortField, sortDir, keyword, limit);
+        PagingAndSortingHelper helper = new PagingAndSortingHelper( "listReviews", sortField, sortDir, keyword, limit, pageNumber);
 
-        helper.listEntities(pageNumber, reviewRepository, model);
+        helper.listEntities(reviewRepository, model);
     }
 
     public Review get(Integer id) {

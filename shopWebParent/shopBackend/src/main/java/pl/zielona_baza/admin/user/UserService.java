@@ -46,9 +46,9 @@ public class UserService {
         sortField = validateSortField(sortField, SORTABLE_FIELDS_AVAILABLE, "id");
         sortDir = validateSortDir(sortDir);
 
-        PagingAndSortingHelper helper = new PagingAndSortingHelper( "listUsers", sortField, sortDir, keyword, limit);
+        PagingAndSortingHelper helper = new PagingAndSortingHelper( "listUsers", sortField, sortDir, keyword, limit, pageNumber);
 
-        helper.listEntities(pageNumber, userRepository, model, userDTOMapper);
+        helper.listEntities(userRepository, model, userDTOMapper);
     }
 
     public List<Role> listRoles() { return roleRepository.findAll(); }

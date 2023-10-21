@@ -22,7 +22,7 @@
         [[${message}]]
     </div>
     <div>
-        <form th:action="@{/customers/page/1}" class="form-inline m-3">
+        <form th:action="@{/customers?page=1}" class="form-inline m-3">
             <input type="hidden" name="sortField" th:value="${sortField}">
             <input type="hidden" name="sortDir" th:value="${sortDir}">
             <div class="input-group">
@@ -47,20 +47,20 @@
         <table class="table table-bordered table-striped table-hover table-responsive-xl">
             <thead class="table-dark">
                 <tr>
-                    <th th:replace="fragments :: column_link('id', 'ID', 'none', '/customers/page/')" />
+                    <th th:replace="fragments :: column_link('id', 'ID', 'none', '/customers?page=')" />
                     <th class="hideable-column">
-                        <th th:replace="fragments :: column_link('email', 'Email', 'tag', '/customers/page/')" />
+                        <th th:replace="fragments :: column_link('email', 'Email', 'tag', '/customers?page=')" />
                     </th>
-                    <th th:replace="fragments :: column_link('firstName', 'First Name', 'none', '/customers/page/')" />
-                    <th th:replace="fragments :: column_link('lastName', 'Last Name', 'none', '/customers/page/')" />
+                    <th th:replace="fragments :: column_link('firstName', 'First Name', 'none', '/customers?page=')" />
+                    <th th:replace="fragments :: column_link('lastName', 'Last Name', 'none', '/customers?page=')" />
                     <th class="hideable-column">
-                        <th th:replace="fragments :: column_link('city', 'City', 'tag', '/customers/page/')" />
+                        <th th:replace="fragments :: column_link('city', 'City', 'tag', '/customers?page=')" />
                     </th>
                     <th class="hideable-column">
-                        <th th:replace="fragments :: column_link('state', 'State', 'tag', '/customers/page/')" />
+                        <th th:replace="fragments :: column_link('state', 'State', 'tag', '/customers?page=')" />
                     </th>
-                    <th th:replace="fragments :: column_link('country', 'Country', 'none', '/customers/page/')" />
-                    <th th:replace="fragments :: column_link('enabled', 'Enabled', 'none', '/customers/page/')" />
+                    <th th:replace="fragments :: column_link('country', 'Country', 'none', '/customers?page=')" />
+                    <th th:replace="fragments :: column_link('enabled', 'Enabled', 'none', '/customers?page=')" />
                     <th></th>
                 </tr>
             </thead>
@@ -151,22 +151,22 @@
         <nav>
             <ul class="pagination justify-content-center flex-wrap">
                 <li th:class="${currentPage > 1 ? 'page-item' : 'page-item disabled'}">
-                    <a th:replace="fragments :: page_link(1, 'First', '/customers/page/')"></a>
+                    <a th:replace="fragments :: page_link(1, 'First', '/customers?page=')"></a>
                 </li>
                 <li th:class="${currentPage > 1 ? 'page-item' : 'page-item disabled'}">
-                    <a th:replace="fragments :: page_link(${currentPage - 1}, 'Previous', '/customers/page/')"></a>
+                    <a th:replace="fragments :: page_link(${currentPage - 1}, 'Previous', '/customers?page=')"></a>
                 </li>
 
                 <li th:class="${currentPage != i ? 'page-item' : 'page-item active'}"
                     th:each="i : ${#numbers.sequence(1, totalPages)}">
-                    <a th:replace="fragments :: page_link(${i}, ${i}, '/customers/page/')"></a>
+                    <a th:replace="fragments :: page_link(${i}, ${i}, '/customers?page=')"></a>
                 </li>
 
                 <li th:class="${currentPage < totalPages ? 'page-item' : 'page-item disabled'}">
-                    <a th:replace="fragments :: page_link(${currentPage + 1}, 'Next', '/customers/page/')"></a>
+                    <a th:replace="fragments :: page_link(${currentPage + 1}, 'Next', '/customers?page=')"></a>
                 </li>
                 <li th:class="${currentPage < totalPages ? 'page-item' : 'page-item disabled'}">
-                    <a th:replace="fragments :: page_link(${totalPages}, 'Last', '/customers/page/')"></a>
+                    <a th:replace="fragments :: page_link(${totalPages}, 'Last', '/customers?page=')"></a>
                 </li>
             </ul>
         </nav>
