@@ -11,15 +11,19 @@ import org.springframework.data.domain.Sort;
 import org.springframework.test.annotation.Rollback;
 import pl.zielona_baza.admin.category.CategoryRepository;
 import pl.zielona_baza.common.entity.Category;
+
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.groupingBy;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Rollback(value = false)
+//@Rollback(value = false)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class CategoryRepositoryTest {
 
@@ -117,5 +121,32 @@ public class CategoryRepositoryTest {
         //then
         assertThat(category).isNotNull();
         assertThat(category.getAlias()).isEqualTo(alias);
+    }
+
+    @Test
+    public void test() {
+        List<Category> categories = categoryRepository.findAll();
+        List<Category> rootCategories = categories.stream()
+                .filter(c -> c.getParent() == null)
+                .toList();
+
+        List<Category> children = categories.stream()
+                .filter(c -> c.getParent() != null).toList();
+
+        children.forEach(c -> c.setName("--" + c.getName()));
+
+        Map<Integer, List<Category>> collect = children.stream().collect(groupingBy(c -> c.getParent().getId()));
+
+        Iterator<Map.Entry<Integer, List<Category>>> iterator = collect.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Integer, List<Category>> next = iterator.next();
+            List<Category> value = next.getValue();
+            System.out.println("Parent Id: " + next.getKey() + ": ");
+            System.out.println();
+            for (Category cat: value) {
+                System.out.println(cat.getName() + " " + cat.getId());
+            }
+            System.out.println();
+        }
     }
 }

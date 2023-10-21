@@ -42,50 +42,51 @@ public class AmazonS3Util {
     }
 
     public static void uploadFile(String folderName, String fileName, InputStream inputStream) {
-        S3Client client = S3Client.builder().build();
+        try (S3Client client = S3Client.builder().build()) {
+            PutObjectRequest request = PutObjectRequest.builder()
+                    .bucket(BUCKET_NAME)
+                    .key(folderName + "/" + fileName)
+                    .acl("public-read")
+                    .build();
 
-        PutObjectRequest request = PutObjectRequest.builder()
-                .bucket(BUCKET_NAME)
-                .key(folderName + "/" + fileName)
-                .acl("public-read")
-                .build();
-
-        try(inputStream) {
-            int contentLength = inputStream.available();
-            client.putObject(request, RequestBody.fromInputStream(inputStream, contentLength));
-        } catch (IOException ex) {
-            LOGGER.error("Could not upload file to Amazon S3", ex);
+            try (inputStream) {
+                int contentLength = inputStream.available();
+                client.putObject(request, RequestBody.fromInputStream(inputStream, contentLength));
+            } catch (IOException ex) {
+                LOGGER.error("Could not upload file to Amazon S3", ex);
+            }
         }
     }
 
     public static void deleteFile(String fileName) {
-        S3Client client = S3Client.builder().build();
+        try (S3Client client = S3Client.builder().build()) {
+            DeleteObjectRequest request = DeleteObjectRequest.builder()
+                    .bucket(BUCKET_NAME)
+                    .key(fileName)
+                    .build();
 
-        DeleteObjectRequest request = DeleteObjectRequest.builder()
-                .bucket(BUCKET_NAME)
-                .key(fileName)
-                .build();
-
-        client.deleteObject(request);
+            client.deleteObject(request);
+        }
     }
 
     public static void removeFolder(String folderName) {
-        S3Client client = S3Client.builder().build();
-        ListObjectsRequest request = ListObjectsRequest.builder()
-                .bucket(BUCKET_NAME)
-                .prefix(folderName)
-                .build();
-
-        ListObjectsResponse response = client.listObjects(request);
-
-        List<S3Object> contents = response.contents();
-
-        for (S3Object object : contents) {
-            DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+        try (S3Client client = S3Client.builder().build()) {
+            ListObjectsRequest request = ListObjectsRequest.builder()
                     .bucket(BUCKET_NAME)
-                    .key(object.key())
+                    .prefix(folderName)
                     .build();
-            client.deleteObject(deleteRequest);
+
+            ListObjectsResponse response = client.listObjects(request);
+
+            List<S3Object> contents = response.contents();
+
+            for (S3Object object : contents) {
+                DeleteObjectRequest deleteRequest = DeleteObjectRequest.builder()
+                        .bucket(BUCKET_NAME)
+                        .key(object.key())
+                        .build();
+                client.deleteObject(deleteRequest);
+            }
         }
     }
 }

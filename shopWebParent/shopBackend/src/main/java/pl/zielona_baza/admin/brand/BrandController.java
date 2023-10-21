@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pl.zielona_baza.admin.category.CategoryService;
-import pl.zielona_baza.admin.exception.ValidationException;
+import pl.zielona_baza.admin.exception.CustomValidationException;
 import pl.zielona_baza.common.entity.Brand;
 import pl.zielona_baza.common.entity.Category;
 
@@ -27,18 +27,13 @@ public class BrandController {
     }
 
     @GetMapping
-    public String listFirstPage(Model model) {
-        return listByPage(1, "name", "asc", 20, null,  model);
-    }
-
-    @GetMapping("/page/{pageNum}")
-    public String listByPage(@PathVariable("pageNum") Integer pageNum,
-                             @RequestParam(name = "sortField", required = false) String sortField,
-                             @RequestParam(name = "sortDir", required = false) String sortDir,
-                             @RequestParam(name = "limit", required = false) Integer limit,
-                             @RequestParam(name = "keyword", required = false) String keyword,
+    public String listByPage(@RequestParam(value = "page", defaultValue = "1") Integer page,
+                             @RequestParam(value = "sortField", defaultValue = "id") String sortField,
+                             @RequestParam(value = "sortDir", defaultValue = "asc") String sortDir,
+                             @RequestParam(value = "limit", defaultValue = "20") Integer limit,
+                             @RequestParam(value = "keyword", required = false) String keyword,
                              Model model) {
-        brandService.listByPage(pageNum, sortField, sortDir, limit, keyword, model);
+        brandService.listByPage(page, sortField, sortDir, limit, keyword, model);
 
         return "brands/brands";
     }
@@ -61,12 +56,12 @@ public class BrandController {
                             Model model) throws IOException {
         try {
             brandService.save(brand, multipartFile);
-        } catch (ValidationException ex) {
+        } catch (CustomValidationException ex) {
             List<Category> listCategories = categoryService.listCategoriesUsedInForm();
 
             model.addAttribute("brand", brand);
             model.addAttribute("listCategories", listCategories);
-            model.addAttribute("pageTitle", "Create new brand");
+            model.addAttribute("pageTitle", "Brand Form");
             model.addAttribute("message", ex.getMessage());
 
             return "brands/brand_form";
@@ -77,36 +72,31 @@ public class BrandController {
 
     @GetMapping("/edit/{id}")
     public String editBrand(@PathVariable(name = "id") Integer id,
-                            Model model,
-                            RedirectAttributes redirectAttributes) {
-        try {
-            Brand brand = brandService.getById(id);
-            List<Category> listCategories = categoryService.listCategoriesUsedInForm();
+                            Model model) throws BrandNotFoundException {
+        Brand brand = brandService.getById(id);
+        List<Category> listCategories = categoryService.listCategoriesUsedInForm();
 
-            model.addAttribute("brand", brand);
-            model.addAttribute("listCategories", listCategories);
-            model.addAttribute("pageTitle", "Create new brand");
+        model.addAttribute("brand", brand);
+        model.addAttribute("listCategories", listCategories);
+        model.addAttribute("pageTitle", "Create new brand");
 
-            return "brands/brand_form";
-        } catch (BrandNotFoundException ex) {
-            redirectAttributes.addFlashAttribute("message", ex.getMessage());
-            return "redirect:/brands";
-        }
+        return "brands/brand_form";
     }
 
     @GetMapping("/delete/{id}")
     public String deleteBrand(@PathVariable(name = "id") Integer id,
                               Model model,
-                              RedirectAttributes redirectAttributes) {
-        try {
-            brandService.delete(id);
+                              RedirectAttributes redirectAttributes) throws BrandNotFoundException {
+        brandService.delete(id);
+        redirectAttributes.addFlashAttribute("message", "The brand with ID " + id +
+                " has been deleted successfully");
 
-            redirectAttributes.addFlashAttribute("message", "The brand with ID " + id +
-                    " has been deleted successfully");
-        } catch (BrandNotFoundException e) {
-            redirectAttributes.addFlashAttribute("message", e.getMessage());
-        }
+        return "redirect:/brands";
+    }
 
+    @ExceptionHandler(BrandNotFoundException.class)
+    public String handleBrandNotFoundException(BrandNotFoundException e, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("message", e.getMessage());
         return "redirect:/brands";
     }
 

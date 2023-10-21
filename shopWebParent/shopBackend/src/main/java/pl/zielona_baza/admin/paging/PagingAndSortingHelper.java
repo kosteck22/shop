@@ -19,25 +19,28 @@ public class PagingAndSortingHelper {
     private String reverseSortDir;
     private String keyword;
     private Integer limit;
+    private Integer pageNum;
 
     public PagingAndSortingHelper(String listName,
                                   String sortField,
                                   String sortDir,
                                   String keyword,
-                                  Integer limit) {
+                                  Integer limit,
+                                  Integer pageNum) {
         this.listName = listName;
         this.sortField = sortField;
         this.sortDir = sortDir;
-        reverseSortDir = (sortDir != null && sortDir.equals("desc")) ? "asc" : "desc";
+        reverseSortDir = sortDir.equals("desc") ? "asc" : "desc";
         this.keyword = keyword;
         this.limit = limit;
+        this.pageNum = pageNum;
     }
 
-    public void listEntities(int pageNum, SearchRepository<?, Integer> repository, Model model) {
-        listEntities(pageNum, repository, model, null);
+    public void listEntities(SearchRepository<?, Integer> repository, Model model) {
+        listEntities(repository, model, null);
     }
 
-    public void listEntities(int pageNum, SearchRepository<?, Integer> repository, Model model, DTOMapper dtoMapper) {
+    public void listEntities(SearchRepository<?, Integer> repository, Model model, DTOMapper dtoMapper) {
         Pageable pageable = createPageable(pageNum);
         Page<?> page;
 

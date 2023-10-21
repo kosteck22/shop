@@ -9,14 +9,13 @@ import org.springframework.web.multipart.MultipartFile;
 import pl.zielona_baza.admin.AmazonS3Util;
 import pl.zielona_baza.admin.brand.BrandRepository;
 import pl.zielona_baza.admin.category.CategoryRepository;
-import pl.zielona_baza.admin.exception.ValidationException;
+import pl.zielona_baza.admin.exception.CustomValidationException;
 import pl.zielona_baza.admin.paging.PagingAndSortingHelper;
 import pl.zielona_baza.common.entity.Brand;
 import pl.zielona_baza.common.entity.Category;
 import pl.zielona_baza.common.entity.product.Product;
 import pl.zielona_baza.common.exception.ProductNotFoundException;
 
-import javax.imageio.ImageIO;
 import java.io.IOException;
 import java.util.*;
 
@@ -109,13 +108,13 @@ public class ProductService {
                         String[] detailNames,
                         String[] detailValues,
                         String[] imageIds,
-                        String[] imageNames) throws IOException, ValidationException, ProductNotFoundException {
+                        String[] imageNames) throws IOException, CustomValidationException, ProductNotFoundException {
         Integer id = product.getId();
 
         //validation main image (required for new product)
         if (id == null || id == 0) {
             if (mainImageMultipart.isEmpty() || !ProductSaveHelper.isImage(mainImageMultipart)) {
-                throw new ValidationException("Main image cannot be empty");
+                throw new CustomValidationException("Main image cannot be empty");
             }
         }
 
@@ -124,10 +123,10 @@ public class ProductService {
 
         if (productByName != null) {
             if ((id == null || id == 0)) {
-                throw new ValidationException("Product name must be unique");
+                throw new CustomValidationException("Product name must be unique");
             }
             if (!Objects.equals(id, productByName.getId())) {
-                throw new ValidationException("Product name must be unique");
+                throw new CustomValidationException("Product name must be unique");
             }
         }
 
@@ -143,10 +142,10 @@ public class ProductService {
 
         if (productByAlias != null) {
             if (id == null || id == 0) {
-                throw new ValidationException("Product alias must be unique");
+                throw new CustomValidationException("Product alias must be unique");
             }
             if (!Objects.equals(id, productByAlias.getId())) {
-                throw new ValidationException("Product alias must be unique");
+                throw new CustomValidationException("Product alias must be unique");
             }
         }
 
@@ -163,25 +162,25 @@ public class ProductService {
 
         if (brand == null) {
             product.setBrand(productToSave.getBrand());
-            throw new ValidationException("Chosen brand does not exist");
+            throw new CustomValidationException("Chosen brand does not exist");
         }
 
         Brand brandFromDB = brandRepository.findById(brand.getId())
-                .orElseThrow(() -> new ValidationException("Chosen brand does not exist"));
+                .orElseThrow(() -> new CustomValidationException("Chosen brand does not exist"));
 
         //validation category
         Category category = product.getCategory();
 
         if (category == null) {
             product.setCategory(productToSave.getCategory());
-            throw new ValidationException("Chosen category does not exist");
+            throw new CustomValidationException("Chosen category does not exist");
         }
 
         Category categoryFromDB = categoryRepository.findById(category.getId())
-                .orElseThrow(() -> new ValidationException("Chosen category does not exist"));
+                .orElseThrow(() -> new CustomValidationException("Chosen category does not exist"));
 
         if (!brandFromDB.getCategories().contains(category)) {
-            throw new ValidationException("The chosen category is not part of brand");
+            throw new CustomValidationException("The chosen category is not part of brand");
         }
 
         productToSave.setName(product.getName());

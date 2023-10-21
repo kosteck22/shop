@@ -11,19 +11,16 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import pl.zielona_baza.admin.brand.BrandService;
 import pl.zielona_baza.admin.category.CategoryService;
-import pl.zielona_baza.admin.exception.ValidationException;
+import pl.zielona_baza.admin.exception.CustomValidationException;
 import pl.zielona_baza.admin.security.ShopUserDetails;
 import pl.zielona_baza.common.entity.Brand;
 import pl.zielona_baza.common.entity.Category;
 import pl.zielona_baza.common.entity.product.Product;
 import pl.zielona_baza.common.exception.ProductNotFoundException;
 
-import javax.imageio.ImageIO;
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.io.IOException;
 import java.util.List;
-import java.util.Locale;
 
 @Controller
 @RequestMapping("/products")
@@ -147,7 +144,7 @@ public class ProductController {
             redirectAttributes.addFlashAttribute("message", "The product has been saved successfully.");
 
             return "redirect:/products";
-        } catch (ValidationException | ProductNotFoundException ex) {
+        } catch (CustomValidationException | ProductNotFoundException ex) {
             List<Brand> listBrands = brandService.listAll();
             Integer numberOfExistingExtraImages = product.getImages().size();
 

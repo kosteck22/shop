@@ -1,5 +1,8 @@
 package pl.zielona_baza.admin;
 
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.imageio.ImageIO;
 import java.lang.reflect.Array;
 
 public class MethodsUtil {
@@ -13,6 +16,15 @@ public class MethodsUtil {
             if (length != expectedLength) {
                 throw new IllegalArgumentException("Array %d doesn't have expected length".formatted(i));
             }
+        }
+    }
+
+    public static boolean isImage(MultipartFile file)
+    {
+        try {
+            return ImageIO.read(file.getInputStream()) != null;
+        } catch (Exception e) {
+            return false;
         }
     }
 }

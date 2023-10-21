@@ -4,7 +4,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
-import pl.zielona_baza.admin.exception.ValidationException;
+import pl.zielona_baza.admin.exception.CustomValidationException;
 import pl.zielona_baza.admin.paging.PagingAndSortingHelper;
 import pl.zielona_baza.admin.setting.country.CountryRepository;
 import pl.zielona_baza.common.entity.Country;
@@ -53,18 +53,18 @@ public class CustomerService {
                 .orElseThrow(() -> new CustomerNotFoundException("Customer not found with ID %d".formatted(id)));
     }
 
-    public void save(CustomerDTO customerUpdateRequest) throws ValidationException, CustomerNotFoundException {
+    public void save(CustomerDTO customerUpdateRequest) throws CustomValidationException, CustomerNotFoundException {
         //Checking if customer exist in DB
         Customer customerInDB = customerRepository.findById(customerUpdateRequest.getId())
                 .orElseThrow(() -> new CustomerNotFoundException("Customer you want to edit not found with ID %d".formatted(customerUpdateRequest.getId())));
 
         //Checking if country exist in DB
         Country country = countryRepository.findById(customerUpdateRequest.getCountry().getId())
-                .orElseThrow(() -> new ValidationException("Country not found. Pick correct one"));
+                .orElseThrow(() -> new CustomValidationException("Country not found. Pick correct one"));
 
         //Validate email
         if (!isEmailUnique(customerUpdateRequest.getId(), customerUpdateRequest.getEmail())) {
-            throw new ValidationException("Choose another email. This one is already taken");
+            throw new CustomValidationException("Choose another email. This one is already taken");
         }
 
         if (customerUpdateRequest.getPassword() != null && !customerUpdateRequest.getPassword().isEmpty()) {

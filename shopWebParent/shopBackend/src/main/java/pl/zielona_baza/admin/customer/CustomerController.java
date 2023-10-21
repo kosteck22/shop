@@ -7,7 +7,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import pl.zielona_baza.admin.exception.ValidationException;
+import pl.zielona_baza.admin.exception.CustomValidationException;
 import pl.zielona_baza.common.entity.Country;
 
 import javax.validation.Valid;
@@ -78,7 +78,7 @@ public class CustomerController {
             redirectAttributes.addFlashAttribute("message", "Customer saved successfully");
         } catch (CustomerNotFoundException ex) {
             redirectAttributes.addFlashAttribute("message", ex.getMessage());
-        } catch (ValidationException ex) {
+        } catch (CustomValidationException ex) {
             List<Country> countries = customerService.listAllCountries();
 
             model.addAttribute("customer", customer);

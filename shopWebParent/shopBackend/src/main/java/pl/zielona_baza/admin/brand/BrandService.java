@@ -5,7 +5,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.multipart.MultipartFile;
 import pl.zielona_baza.admin.AmazonS3Util;
 import pl.zielona_baza.admin.category.CategoryDTO;
-import pl.zielona_baza.admin.exception.ValidationException;
+import pl.zielona_baza.admin.exception.CustomValidationException;
 import pl.zielona_baza.admin.paging.PagingAndSortingHelper;
 import pl.zielona_baza.common.entity.Brand;
 
@@ -20,44 +20,37 @@ public class BrandService {
     private static final int BRANDS_PER_PAGE = 10;
     private static final List<String> SORTABLE_FIELDS_AVAILABLE = new ArrayList<>(List.of("id", "name"));
     private final BrandRepository brandRepository;
+    private final BrandValidator validator;
 
-    public BrandService(BrandRepository brandRepository) {
+    public BrandService(BrandRepository brandRepository, BrandValidator validator) {
         this.brandRepository = brandRepository;
+        this.validator = validator;
     }
 
     public void listByPage(Integer pageNumber, String sortField, String sortDir, Integer limit, String keyword, Model model) {
         pageNumber = validatePage(pageNumber);
         limit = validateLimit(limit, BRANDS_PER_PAGE);
-        sortField = validateSortField(sortField, SORTABLE_FIELDS_AVAILABLE, "name");
+        sortField = validateSortField(sortField, SORTABLE_FIELDS_AVAILABLE, "id");
         sortDir = validateSortDir(sortDir);
 
-        PagingAndSortingHelper helper = new PagingAndSortingHelper( "listBrands", sortField, sortDir, keyword, limit);
+        PagingAndSortingHelper helper = new PagingAndSortingHelper("listBrands", sortField, sortDir, keyword, limit, pageNumber);
 
-        helper.listEntities(pageNumber, brandRepository, model);
+        helper.listEntities(brandRepository, model);
     }
 
-    public void save(Brand brand, MultipartFile file) throws IOException, ValidationException {
-        //Validate brand name
-        if (brand.getName() != null) brand.setName(brand.getName().trim());
-        if (!isNameValid(brand.getId(), brand.getName())) {
-            throw new ValidationException("Brand name is not valid try another one");
+    public void save(Brand brand, MultipartFile file) throws IOException, CustomValidationException {
+        BrandValidatorResult result = validator.validate(brand, brandRepository, file);
+        if (result.isNotValid()) {
+            throw new CustomValidationException(result.message());
         }
 
-        // New brand
-        if (brand.getId() == null || brand.getId() == 0) {
-            if (file.isEmpty()) {
-                throw new ValidationException("File image cannot be empty");
-            }
-        }
         // Edit brand
-        else {
-            if (file.isEmpty()) {
-                brandRepository.save(brand);
-                return;
-            }
+        if (file.isEmpty()) {
+            brandRepository.save(brand);
+            return;
         }
 
-        //Saves image to Amazon S3
+        // Saves image to Amazon S3
         String fileName = brand.getName() + UUID.randomUUID();
         brand.setLogo(fileName);
 
@@ -68,30 +61,16 @@ public class BrandService {
         AmazonS3Util.uploadFile(uploadDir, fileName, file.getInputStream());
     }
 
-    public boolean isNameValid(Integer id, String name) {
-        if (name == null || name.length() < 2 || name.length() > 45) return false;
-
-        boolean isCreatingNew = (id == null || id == 0);
-        Brand brand = brandRepository.findByName(name);
-
-        if (isCreatingNew) {
-            return brand == null;
-        } else {
-            return brand == null || id.equals(brand.getId());
-        }
-    }
-
     public void delete(Integer id) throws BrandNotFoundException {
         Brand brand = getById(id);
-        brandRepository.delete(brand);
 
         String brandDir = "brand-logos/" + id;
         AmazonS3Util.removeFolder(brandDir);
+        brandRepository.delete(brand);
     }
 
     public Brand getById(Integer id) throws BrandNotFoundException {
-        return brandRepository.findById(id)
-                .orElseThrow(() -> new BrandNotFoundException("Brand with ID %d not found.".formatted(id)));
+        return brandRepository.findById(id).orElseThrow(() -> new BrandNotFoundException("Brand with ID %d not found.".formatted(id)));
     }
 
     public String checkUnique(Integer id, String name) {
@@ -118,11 +97,11 @@ public class BrandService {
     public List<CategoryDTO> getListCategoriesByBrandId(Integer id) {
         return brandRepository.findById(id)
                 .orElseThrow(BrandNotFoundRestException::new)
-                .getCategories()
-                .stream()
+                .getCategories().stream()
                 .map(cat -> CategoryDTO.builder()
                         .id(cat.getId())
                         .name(cat.getName())
-                        .build()).collect(Collectors.toList());
+                        .build())
+                .collect(Collectors.toList());
     }
 }

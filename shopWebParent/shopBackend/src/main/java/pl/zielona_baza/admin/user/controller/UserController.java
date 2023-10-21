@@ -8,7 +8,7 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import pl.zielona_baza.admin.exception.ValidationException;
+import pl.zielona_baza.admin.exception.CustomValidationException;
 import pl.zielona_baza.admin.user.UserDTO;
 import pl.zielona_baza.admin.user.UserNotFoundException;
 import pl.zielona_baza.admin.user.UserService;
@@ -89,7 +89,7 @@ public class UserController {
             userService.save(user, multipartFile);
 
             redirectAttributes.addFlashAttribute("message", "The user has been saved successfully.");
-        } catch (ValidationException ex) {
+        } catch (CustomValidationException ex) {
             model.addAttribute("message", ex.getMessage());
             model.addAttribute("roles", userService.listRoles());
             model.addAttribute("user", user);

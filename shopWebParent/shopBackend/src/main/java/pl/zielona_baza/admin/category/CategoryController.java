@@ -5,7 +5,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import pl.zielona_baza.admin.exception.ValidationException;
+import pl.zielona_baza.admin.exception.CustomValidationException;
 import pl.zielona_baza.common.exception.CategoryNotFoundException;
 import pl.zielona_baza.admin.category.export.CategoryExcelExporter;
 import pl.zielona_baza.admin.category.export.CategoryCsvExport;
@@ -27,18 +27,13 @@ public class CategoryController {
     }
 
     @GetMapping
-    public String listFirstPage(Model model) {
-        return listByPage(1, "name", "asc", 20, null, model);
-    }
-
-    @GetMapping("/page/{pageNum}")
-    public String listByPage(@PathVariable("pageNum") Integer pageNum,
-                             @RequestParam(value = "sortField", required = false) String sortField,
-                             @RequestParam(value = "sortDir", required = false) String sortDir,
-                             @RequestParam(value = "limit", required = false) Integer limit,
+    public String listByPage(@RequestParam(value = "page", defaultValue = "1") Integer page,
+                             @RequestParam(value = "sortField", defaultValue = "id") String sortField,
+                             @RequestParam(value = "sortDir", defaultValue = "asc") String sortDir,
+                             @RequestParam(value = "limit", defaultValue = "20") Integer limit,
                              @RequestParam(value = "keyword", required = false) String keyword,
                              Model model) {
-        categoryService.listByPage(pageNum, sortField, sortDir, limit, keyword, model);
+        categoryService.listByPage(page, sortField, sortDir, limit, keyword, model);
 
         return "categories/categories";
     }
@@ -64,7 +59,7 @@ public class CategoryController {
             redirectAttributes.addFlashAttribute("message", "The category has been saved successfully.");
 
             return "redirect:/categories";
-        } catch (ValidationException | CategoryNotFoundException ex) {
+        } catch (CustomValidationException | CategoryNotFoundException ex) {
             List<Category> listCategories = categoryService.listCategoriesUsedInForm();
 
             model.addAttribute("category", new Category());

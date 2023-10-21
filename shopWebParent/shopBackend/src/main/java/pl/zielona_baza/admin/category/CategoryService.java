@@ -6,7 +6,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.multipart.MultipartFile;
 import pl.zielona_baza.admin.AmazonS3Util;
-import pl.zielona_baza.admin.exception.ValidationException;
+import pl.zielona_baza.admin.exception.CustomValidationException;
 import pl.zielona_baza.admin.paging.PagingAndSortingHelper;
 import pl.zielona_baza.common.entity.Category;
 import pl.zielona_baza.common.exception.CategoryNotFoundException;
@@ -36,9 +36,9 @@ public class CategoryService {
         sortField = validateSortField(sortField, SORTABLE_FIELDS_AVAILABLE, "name");
         sortDir = validateSortDir(sortDir);
 
-        PagingAndSortingHelper helper = new PagingAndSortingHelper( "listCategories", sortField, sortDir, keyword, limit);
+        PagingAndSortingHelper helper = new PagingAndSortingHelper("listCategories", sortField, sortDir, keyword, limit, pageNumber);
 
-        helper.listEntities(pageNumber, categoryRepository, model);
+        helper.listEntities(categoryRepository, model);
     }
 
     public List<Category> listAll(String sortDir, String prefixSubCategory) {
@@ -72,8 +72,8 @@ public class CategoryService {
         int newSubLevel = level + 1;
         for (Category subCategory : children) {
             String name = "";
-            for (int i=0; i < newSubLevel; i++) {
-                name+=prefixSubCategory;
+            for (int i = 0; i < newSubLevel; i++) {
+                name += prefixSubCategory;
             }
             name += subCategory.getName();
 
@@ -85,9 +85,8 @@ public class CategoryService {
 
     public List<Category> listCategoriesUsedInForm() {
         List<Category> categoriesUsedInForm = new ArrayList<>();
-        Iterable<Category> categoriesInDB = categoryRepository.findRootCategories(Sort.by("name").ascending());
-
-        for (Category category : categoriesInDB) {
+        Iterable<Category> rootCategories = categoryRepository.findRootCategories(Sort.by("name").ascending());
+        for (Category category : rootCategories) {
             if (category.getParent() == null) {
                 categoriesUsedInForm.add(
                         Category.builder()
@@ -103,10 +102,10 @@ public class CategoryService {
                     String name = "--" + subCategory.getName();
                     categoriesUsedInForm.add(
                             Category.builder()
-                                .name(name)
-                                .alias(subCategory.getAlias())
-                                .id(subCategory.getId())
-                                .build());
+                                    .name(name)
+                                    .alias(subCategory.getAlias())
+                                    .id(subCategory.getId())
+                                    .build());
                     listSubCategoriesUsedInForm(categoriesUsedInForm, subCategory, 1);
                 }
             }
@@ -121,15 +120,15 @@ public class CategoryService {
 
         for (Category subCategory : children) {
             String name = "";
-            for(int i = 0; i < newSubLevel; i++) {
+            for (int i = 0; i < newSubLevel; i++) {
                 name += "--";
             }
             categoriesUsedInForm.add(
                     Category.builder()
-                    .name(name + subCategory.getName())
-                    .alias(name + subCategory.getName())
-                    .id(subCategory.getId())
-                    .build());
+                            .name(name + subCategory.getName())
+                            .alias(name + subCategory.getName())
+                            .id(subCategory.getId())
+                            .build());
 
             listSubCategoriesUsedInForm(categoriesUsedInForm, subCategory, newSubLevel);
         }
@@ -178,23 +177,23 @@ public class CategoryService {
         }
     }
 
-    public void save(Category category, MultipartFile multipartFile) throws CategoryNotFoundException, ValidationException, IOException {
+    public void save(Category category, MultipartFile multipartFile) throws CategoryNotFoundException, CustomValidationException, IOException {
         //Validate category name
         if (category.getName() != null) category.setName(category.getName().trim());
         if (!isNameValid(category.getId(), category.getName())) {
-            throw new ValidationException("Category name is not valid try another one");
+            throw new CustomValidationException("Category name is not valid try another one");
         }
 
         //Validate category alias
         if (category.getAlias() != null) category.setAlias(category.getAlias().trim());
         if (!isAliasValid(category.getId(), category.getAlias())) {
-            throw new ValidationException("Category alias is not valid try another one");
+            throw new CustomValidationException("Category alias is not valid try another one");
         }
 
         //Validate&Set parent
         if (category.getParent() != null) {
             Category parentCategory = categoryRepository.findById(category.getParent().getId()).orElseThrow(() ->
-                new CategoryNotFoundException("Parent category not found."));
+                    new CategoryNotFoundException("Parent category not found."));
             category.setParent(parentCategory);
             String allParentIds = parentCategory.getAllParentIds() == null ? "-" : parentCategory.getAllParentIds();
             allParentIds += parentCategory.getId() + "-";
@@ -204,7 +203,7 @@ public class CategoryService {
         //New category
         if (category.getId() == null || category.getId() == 0) {
             if (multipartFile.isEmpty()) {
-                throw new ValidationException("File image cannot be empty");
+                throw new CustomValidationException("File image cannot be empty");
             }
         }
 
@@ -257,7 +256,8 @@ public class CategoryService {
     public void delete(Integer id) throws CategoryNotFoundException, CategoryHasChildrenException {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new CategoryNotFoundException("Category with ID %d not found.".formatted(id)));
-        if (category.isHasChildren()) throw new CategoryHasChildrenException("You cannot delete category with children.");
+        if (category.isHasChildren())
+            throw new CategoryHasChildrenException("You cannot delete category with children.");
 
         categoryRepository.deleteById(id);
 

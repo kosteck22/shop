@@ -7,7 +7,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.multipart.MultipartFile;
 import pl.zielona_baza.admin.AmazonS3Util;
-import pl.zielona_baza.admin.exception.ValidationException;
+import pl.zielona_baza.admin.exception.CustomValidationException;
 import pl.zielona_baza.admin.paging.PagingAndSortingHelper;
 import pl.zielona_baza.common.entity.Role;
 import pl.zielona_baza.common.entity.User;
@@ -53,7 +53,7 @@ public class UserService {
 
     public List<Role> listRoles() { return roleRepository.findAll(); }
 
-    public void save(UserDTO userDTO, MultipartFile multipartFile) throws UserNotFoundException, ValidationException, IOException {
+    public void save(UserDTO userDTO, MultipartFile multipartFile) throws UserNotFoundException, CustomValidationException, IOException {
         Integer userId = userDTO.getId();
         boolean isCreatingNewUser = (userId == null);
         User userFromDB;
@@ -69,13 +69,13 @@ public class UserService {
         //Validate password
         if (isCreatingNewUser) {
             if (userDTO.getPassword() == null || userDTO.getPassword().isEmpty()) {
-                throw new ValidationException("Password for new user is required");
+                throw new CustomValidationException("Password for new user is required");
             }
         }
 
         //Validate email
         if (!isEmailUnique(userId, userDTO.getEmail())) {
-            throw new ValidationException("Choose another email. This one is already taken");
+            throw new CustomValidationException("Choose another email. This one is already taken");
         }
 
         userFromDB.setEmail(userDTO.getEmail());

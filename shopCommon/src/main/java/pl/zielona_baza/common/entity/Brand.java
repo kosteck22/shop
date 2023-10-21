@@ -50,7 +50,7 @@ public class Brand {
 
     @Transient
     public String getLogoPath() {
-        if (this.logo == "brand-logo.png" || this.id == null) return "/images/image-thumbnail.png";
+        if ("brand-logo.png".equals(this.logo) || this.id == null) return "/images/image-thumbnail.png";
         return Constants.S3_BASE_URI + "/brand-logos/" + this.id + "/" + this.logo;
     }
 }

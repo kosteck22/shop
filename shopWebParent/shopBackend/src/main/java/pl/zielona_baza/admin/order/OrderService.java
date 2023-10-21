@@ -1,31 +1,22 @@
 package pl.zielona_baza.admin.order;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.ui.Model;
-import pl.zielona_baza.admin.exception.ValidationException;
 import pl.zielona_baza.admin.paging.PagingAndSortingHelper;
 import pl.zielona_baza.admin.setting.country.CountryRepository;
 import pl.zielona_baza.common.entity.Country;
 import pl.zielona_baza.common.entity.order.Order;
-import pl.zielona_baza.common.entity.order.OrderDetail;
 import pl.zielona_baza.common.entity.order.OrderStatus;
 import pl.zielona_baza.common.entity.order.OrderTrack;
-import pl.zielona_baza.common.entity.product.Product;
 import pl.zielona_baza.common.exception.OrderNotFoundException;
 
-import javax.servlet.http.HttpServletRequest;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Set;
 
 import static pl.zielona_baza.admin.paging.PagingAndSortingValidator.*;
 import static pl.zielona_baza.admin.paging.PagingAndSortingValidator.validateSortDir;
