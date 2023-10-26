@@ -32,7 +32,10 @@ public class BrandValidator {
         if (errors.isEmpty()) {
             return BrandValidatorResult.success();
         }
-        String failureMessage = errors.stream().map(err -> err.message).collect(Collectors.joining(ERROR_DELIMITER));
+        String failureMessage = errors.stream()
+                .map(err -> err.message)
+                .collect(Collectors.joining(ERROR_DELIMITER));
+
         return BrandValidatorResult.failure(failureMessage);
     }
 

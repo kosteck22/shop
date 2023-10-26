@@ -52,7 +52,7 @@ public class CheckoutService {
 
     private float calculateProductCost(List<CartItem> cartItems) {
         return cartItems.stream()
-                .map(c -> c.getQuantity() * c.getProduct().getCost())
+                .map(c -> (c.getQuantity()) * c.getProduct().getCost().floatValue())
                 .reduce(0.0F, Float::sum);
     }
 }

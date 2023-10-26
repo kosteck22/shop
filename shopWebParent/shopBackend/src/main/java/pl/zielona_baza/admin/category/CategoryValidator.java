@@ -28,11 +28,11 @@ public class CategoryValidator {
         if (!isCategoryAliasUnique(category.getId(), category.getAlias(), repository)) {
             errors.add(CategoryValidationError.ALIAS_NOT_UNIQUE);
         }
-        if (!isFileImg(file)) {
-            errors.add(CategoryValidationError.FILE_NOT_IMG);
-        }
         if (!hasImgForNewCategory(category.getId(), file)) {
             errors.add(CategoryValidationError.EMPTY_IMG_FOR_NEW_BRAND);
+        }
+        if (file != null && !isFileImg(file)) {
+            errors.add(CategoryValidationError.FILE_NOT_IMG);
         }
 
         if (errors.isEmpty()) {

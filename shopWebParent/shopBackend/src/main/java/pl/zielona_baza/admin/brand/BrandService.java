@@ -1,6 +1,7 @@
 package pl.zielona_baza.admin.brand;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.multipart.MultipartFile;
 import pl.zielona_baza.admin.AmazonS3Util;
@@ -16,6 +17,7 @@ import java.util.stream.Collectors;
 import static pl.zielona_baza.admin.paging.PagingAndSortingValidator.*;
 
 @Service
+@Transactional
 public class BrandService {
     private static final int BRANDS_PER_PAGE = 10;
     private static final List<String> SORTABLE_FIELDS_AVAILABLE = new ArrayList<>(List.of("id", "name"));

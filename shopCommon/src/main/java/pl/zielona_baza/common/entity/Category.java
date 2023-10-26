@@ -8,6 +8,7 @@ import pl.zielona_baza.common.Constants;
 
 import javax.persistence.*;
 import java.util.*;
+import java.util.stream.Stream;
 
 @Entity
 @Table(name = "categories")
@@ -88,11 +89,28 @@ public class Category {
     }
     @Transient
     public boolean isHasChildren() {
-        return this.children.size() > 0;
+        return !this.children.isEmpty();
     }
 
     @Override
     public String toString() {
         return this.name;
+    }
+
+    public Stream<Category> streamAll() {
+        return Stream.concat(Stream.of(this), getChildren().stream().flatMap(cat -> {
+            cat.setName(getModifiedName(cat));
+            return cat.streamAll();
+        }));
+    }
+
+    private String getModifiedName(Category category) {
+        String prefix = "";
+        Category parent = category.getParent();
+        while(parent != null) {
+            prefix += "--";
+            parent = parent.getParent();
+        }
+        return prefix + category.getName();
     }
 }

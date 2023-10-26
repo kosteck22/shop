@@ -15,18 +15,17 @@ import pl.zielona_baza.admin.customer.CustomerNotFoundException;
 import pl.zielona_baza.common.entity.Category;
 import pl.zielona_baza.common.entity.Customer;
 
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.groupingBy;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.shouldHaveThrown;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-//@Rollback(value = false)
+@Rollback(value = false)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class CategoryRepositoryTest {
 
@@ -124,10 +123,5 @@ public class CategoryRepositoryTest {
         //then
         assertThat(category).isNotNull();
         assertThat(category.getAlias()).isEqualTo(alias);
-    }
-
-    @Test
-    public void test() {
-
     }
 }

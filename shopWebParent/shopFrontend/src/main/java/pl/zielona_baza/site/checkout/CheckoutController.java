@@ -150,7 +150,7 @@ public class CheckoutController {
         String orderTime = dateFormatter.format(order.getOrderTime());
 
         CurrencySettingBag currencySettings = settingService.getCurrencySettings();
-        String totalAmount = Utility.formatCurrency(order.getTotal(), currencySettings);
+        String totalAmount = Utility.formatCurrency(order.getTotal().floatValue(), currencySettings);
 
         content = content.replace("[[name]]", order.getCustomer().getFullName());
         content = content.replace("[[orderId]]", String.valueOf(order.getId()));

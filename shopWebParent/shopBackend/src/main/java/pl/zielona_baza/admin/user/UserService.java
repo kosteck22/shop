@@ -28,12 +28,14 @@ public class UserService {
     private final UserDTOMapper userDTOMapper;
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final UserValidator validator;
 
-    public UserService(PasswordEncoder passwordEncoder, UserDTOMapper userDTOMapper, UserRepository userRepository, RoleRepository roleRepository) {
+    public UserService(PasswordEncoder passwordEncoder, UserDTOMapper userDTOMapper, UserRepository userRepository, RoleRepository roleRepository, UserValidator validator) {
         this.passwordEncoder = passwordEncoder;
         this.userDTOMapper = userDTOMapper;
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.validator = validator;
     }
 
     public List<User> listAll() {
@@ -55,10 +57,10 @@ public class UserService {
 
     public void save(UserDTO userDTO, MultipartFile multipartFile) throws UserNotFoundException, CustomValidationException, IOException {
         Integer userId = userDTO.getId();
-        boolean isCreatingNewUser = (userId == null);
+        boolean isCreatingNewUser = (userId == null || userId == 0);
         User userFromDB;
 
-        //Check if user exist for given id and get him from DB
+        //Check if user exist for given id and get him or create new
         if (!isCreatingNewUser) {
             userFromDB = userRepository.findById(userId)
                     .orElseThrow(() -> new UserNotFoundException("User with id %d not found".formatted(userId)));
@@ -66,16 +68,9 @@ public class UserService {
             userFromDB = new User();
         }
 
-        //Validate password
-        if (isCreatingNewUser) {
-            if (userDTO.getPassword() == null || userDTO.getPassword().isEmpty()) {
-                throw new CustomValidationException("Password for new user is required");
-            }
-        }
-
-        //Validate email
-        if (!isEmailUnique(userId, userDTO.getEmail())) {
-            throw new CustomValidationException("Choose another email. This one is already taken");
+        UserValidatorResult result = validator.validate(userDTO, multipartFile, userRepository, isCreatingNewUser);
+        if (result.isNotValid()) {
+            throw new CustomValidationException(result.message());
         }
 
         userFromDB.setEmail(userDTO.getEmail());

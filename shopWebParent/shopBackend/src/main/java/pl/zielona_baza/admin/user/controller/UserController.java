@@ -8,6 +8,7 @@ import org.springframework.web.bind.WebDataBinder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import pl.zielona_baza.admin.brand.BrandNotFoundException;
 import pl.zielona_baza.admin.exception.CustomValidationException;
 import pl.zielona_baza.admin.user.UserDTO;
 import pl.zielona_baza.admin.user.UserNotFoundException;
@@ -32,18 +33,13 @@ public class UserController {
     }
 
     @GetMapping
-    public String listFirstPage(Model model) {
-        return listByPage(1, "email", "desc", 20, null, model);
-    }
-
-    @GetMapping("/page/{pageNum}")
-    public String listByPage(@PathVariable("pageNum") Integer pageNum,
-                             @RequestParam(name = "sortField", required = false) String sortField,
-                             @RequestParam(name = "sortDir", required = false) String sortDir,
-                             @RequestParam(name = "limit", required = false) Integer limit,
-                             @RequestParam(name = "keyword", required = false) String keyword,
+    public String listByPage(@RequestParam(value = "page", defaultValue = "1") Integer page,
+                             @RequestParam(value = "sortField", defaultValue = "id") String sortField,
+                             @RequestParam(value = "sortDir", defaultValue = "asc") String sortDir,
+                             @RequestParam(value = "limit", defaultValue = "20") Integer limit,
+                             @RequestParam(value = "keyword", required = false) String keyword,
                              Model model) {
-        userService.listByPage(pageNum, sortField, sortDir, limit, keyword, model);
+        userService.listByPage(page, sortField, sortDir, limit, keyword, model);
 
         return "users/users";
     }
@@ -58,18 +54,12 @@ public class UserController {
     }
 
     @GetMapping("/edit/{id}")
-    public String editUser(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
-        try
-        {
-            model.addAttribute("user", userService.getUserById(id));
-            model.addAttribute("pageTitle", "Edit User");
-            model.addAttribute("roles", userService.listRoles());
+    public String editUser(@PathVariable("id") Integer id, Model model) throws UserNotFoundException {
+        model.addAttribute("user", userService.getUserById(id));
+        model.addAttribute("pageTitle", "Edit User");
+        model.addAttribute("roles", userService.listRoles());
 
-            return "users/user_form";
-        } catch (UserNotFoundException ex) {
-            redirectAttributes.addFlashAttribute("message", ex.getMessage());
-            return "redirect:/users";
-        }
+        return "users/user_form";
     }
 
     @PostMapping("/save")
@@ -77,18 +67,18 @@ public class UserController {
                            BindingResult result,
                            Model model,
                            RedirectAttributes redirectAttributes,
-                           @RequestParam("image") MultipartFile multipartFile) throws IOException {
+                           @RequestParam("image") MultipartFile multipartFile) throws IOException, UserNotFoundException {
         if (result.hasErrors()) {
             model.addAttribute("roles", userService.listRoles());
             model.addAttribute("pageTitle", "Create/Edit user.");
 
             return "users/user_form";
         }
-
         try {
             userService.save(user, multipartFile);
-
             redirectAttributes.addFlashAttribute("message", "The user has been saved successfully.");
+
+            return getRedirectURLtoAffectedUser(user);
         } catch (CustomValidationException ex) {
             model.addAttribute("message", ex.getMessage());
             model.addAttribute("roles", userService.listRoles());
@@ -96,24 +86,13 @@ public class UserController {
             model.addAttribute("pageTitle", "Create/Edit user.");
 
             return "users/user_form";
-        } catch (UserNotFoundException ex) {
-            redirectAttributes.addFlashAttribute("message", ex.getMessage());
-
-            return "redirect:/users";
         }
-
-        return getRedirectURLtoAffectedUser(user);
     }
 
     @GetMapping("/delete/{id}")
-    public String deleteUser(@PathVariable("id") Integer id, Model model, RedirectAttributes redirectAttributes) {
-        try {
-            userService.delete(id);
-
-            redirectAttributes.addFlashAttribute("message", "User has been deleted successfully");
-        } catch (UserNotFoundException ex) {
-            redirectAttributes.addFlashAttribute("message", ex.getMessage());
-        }
+    public String deleteUser(@PathVariable("id") Integer id, RedirectAttributes redirectAttributes) throws UserNotFoundException {
+        userService.delete(id);
+        redirectAttributes.addFlashAttribute("message", "User has been deleted successfully");
 
         return "redirect:/users";
     }
@@ -121,23 +100,17 @@ public class UserController {
     @GetMapping("/{id}/enabled/{enabled}")
     public String updateUserEnabledStatus(@PathVariable("id") Integer id,
                                           @PathVariable("enabled") Boolean enabled,
-                                          RedirectAttributes redirectAttributes) {
-        try {
-            UserDTO user = userService.updateUserEnabledStatus(id, enabled);
-            String status = enabled ? "enabled" : "disabled";
-            String message = "The user ID " + id + " has been " + status;
-            redirectAttributes.addFlashAttribute("message", message);
+                                          RedirectAttributes redirectAttributes) throws UserNotFoundException {
+        UserDTO user = userService.updateUserEnabledStatus(id, enabled);
+        String status = enabled ? "enabled" : "disabled";
+        String message = "The user ID " + id + " has been " + status;
+        redirectAttributes.addFlashAttribute("message", message);
 
-            return getRedirectURLtoAffectedUser(user);
-        } catch (UserNotFoundException ex) {
-            redirectAttributes.addFlashAttribute("message", ex.getMessage());
-        }
-
-        return "redirect:/users";
+        return getRedirectURLtoAffectedUser(user);
     }
 
     private static String getRedirectURLtoAffectedUser(UserDTO user) {
-        return "redirect:/users/page/1?sortField=id&sortDir=asc&keyword=" + user.getEmail();
+        return "redirect:/users?page=1&sortField=id&sortDir=asc&keyword=" + user.getEmail();
     }
 
     @GetMapping("/export/csv")
@@ -161,9 +134,15 @@ public class UserController {
         exporter.export(users, response);
     }
 
+    @ExceptionHandler(UserNotFoundException.class)
+    public String handleBrandNotFoundException(UserNotFoundException e, RedirectAttributes redirectAttributes) {
+        redirectAttributes.addFlashAttribute("message", e.getMessage());
+        return "redirect:/users";
+    }
+
     @InitBinder
-    public void initBinder(WebDataBinder dataBinder) {
-        StringTrimmerEditor stringTrimmerEditor = new StringTrimmerEditor(true);
-        dataBinder.registerCustomEditor(String.class, stringTrimmerEditor);
+    public void initBinder(WebDataBinder webDataBinder) {
+        StringTrimmerEditor editor = new StringTrimmerEditor(true);
+        webDataBinder.registerCustomEditor(String.class, editor);
     }
 }

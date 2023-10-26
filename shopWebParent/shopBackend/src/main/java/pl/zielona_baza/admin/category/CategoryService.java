@@ -142,58 +142,9 @@ public class CategoryService {
     }
 
     public List<Category> listCategoriesUsedInForm() {
-        List<Category> categoriesUsedInForm = new ArrayList<>();
-        Iterable<Category> rootCategories = categoryRepository.findRootCategories(Sort.by("name").ascending());
-        for (Category category : rootCategories) {
-            if (category.getParent() == null) {
-                categoriesUsedInForm.add(
-                        Category.builder()
-                                .name(category.getName())
-                                .alias(category.getAlias())
-                                .id(category.getId())
-                                .build()
-                );
+        List<Category> parentsCategories = categoryRepository.findRootCategories(Sort.by("name").ascending());
 
-                Set<Category> children = category.getChildren();
-
-                for (Category subCategory : children) {
-                    String name = "--" + subCategory.getName();
-                    categoriesUsedInForm.add(
-                            Category.builder()
-                                    .name(name)
-                                    .alias(subCategory.getAlias())
-                                    .id(subCategory.getId())
-                                    .build());
-                    listSubCategoriesUsedInForm(categoriesUsedInForm, subCategory, 1);
-                }
-            }
-        }
-
-        return categoriesUsedInForm;
-    }
-
-    private void listSubCategoriesUsedInForm(List<Category> categoriesUsedInForm, Category parent, int subLevel) {
-        int newSubLevel = subLevel + 1;
-        Set<Category> children = sortSubCategories(parent.getChildren());
-
-        for (Category subCategory : children) {
-            String name = "";
-            for (int i = 0; i < newSubLevel; i++) {
-                name += "--";
-            }
-            categoriesUsedInForm.add(
-                    Category.builder()
-                            .name(name + subCategory.getName())
-                            .alias(name + subCategory.getName())
-                            .id(subCategory.getId())
-                            .build());
-
-            listSubCategoriesUsedInForm(categoriesUsedInForm, subCategory, newSubLevel);
-        }
-    }
-
-    private SortedSet<Category> sortSubCategories(Set<Category> children) {
-        return sortSubCategories(children, "asc");
+        return parentsCategories.stream().flatMap(Category::streamAll).toList();
     }
 
     private SortedSet<Category> sortSubCategories(Set<Category> children, String sortDir) {

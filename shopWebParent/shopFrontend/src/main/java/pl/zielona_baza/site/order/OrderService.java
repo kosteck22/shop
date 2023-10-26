@@ -14,6 +14,7 @@ import pl.zielona_baza.common.entity.product.Product;
 import pl.zielona_baza.common.exception.OrderNotFoundException;
 import pl.zielona_baza.site.checkout.CheckoutInfo;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import java.util.Set;
@@ -38,11 +39,11 @@ public class OrderService {
                     order.setStatus(OrderStatus.NEW);
                 }
                 order.setCustomer(customer);
-                order.setProductCost(checkoutInfo.getProductCost());
-                order.setSubtotal(checkoutInfo.getProductTotal());
-                order.setShippingCost(checkoutInfo.getShippingCostTotal());
+                order.setProductCost(BigDecimal.valueOf(checkoutInfo.getProductCost()));
+                order.setSubtotal(BigDecimal.valueOf(checkoutInfo.getProductTotal()));
+                order.setShippingCost(BigDecimal.valueOf(checkoutInfo.getShippingCostTotal()));
                 order.setTax(0.0F);
-                order.setTotal(checkoutInfo.getPaymentTotal());
+                order.setTotal(BigDecimal.valueOf(checkoutInfo.getPaymentTotal()));
                 order.setDeliverDays(checkoutInfo.getDeliverDays());
                 order.setDeliverDate(checkoutInfo.getDeliverDate());
 
